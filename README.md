@@ -1,3 +1,142 @@
-# pikilon.github.io
+# pikilon.com
 
-Sitio raíz de GitHub Pages de @pikilon.
+Sitio personal de **Francisco G. Sarazá** (pikilon). Antes era un WordPress en
+Hostinger; ahora es una web estática que se genera desde este mismo
+repositorio, sin dependencias externas y sin base de datos remota.
+
+Aquí se publica el CV y lo que voy aprendiendo sobre desarrollo web.
+
+## Cómo funciona
+
+```
+archive/     copia íntegra del WordPress original (HTML, JSON y 94 medios)
+   |  node scripts/import.mjs
+   v
+db/pikilon.db   base de datos SQLite simplificada (8 tablas)
+   |  node scripts/site.mjs export
+   v
+site/        contenido en Markdown con cabecera; ESTA es la fuente de verdad
+   |  node scripts/site.mjs publish
+   v
+public/      sitio estático generado (HTML + assets) -> GitHub Pages
+```
+
+La regla es sencilla: **el contenido se escribe en `site/`, todo lo demás se
+genera.** La base de datos es un paso intermedio reproducible, y `archive/`
+es la copia de seguridad de lo que había antes.
+
+## Publicar algo
+
+```bash
+# 1. Crear el archivo con la cabecera lista
+node scripts/site.mjs new "Mi artículo" --category=code --tags=css,html
+
+# 2. Escribir el Markdown en site/code/mi-articulo.md
+# 3. Sincronizar, auditar y generar
+node scripts/site.mjs publish
+
+# 4. Subir a GitHub Pages (cuando quieras)
+node scripts/site.mjs deploy
+```
+
+Para revisar el resultado antes de subirlo:
+
+```bash
+python3 -m http.server 8080 --directory public
+```
+
+### Cabecera de un artículo
+
+```yaml
+---
+title: Rem + em, a love story
+slug: rem-em-love-story        # define la URL; no lo cambies sin motivo
+date: 2017-06-28
+status: published              # published | draft | archived
+category: code
+tags: [html, css, bem]
+summary: Una línea de resumen.
+featured: wp-content/uploads/2017/06/REM.jpg
+---
+```
+
+Los borradores (`status: draft`) no se publican y no generan página.
+
+## Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `node scripts/site.mjs new "Título"` | Crea un artículo nuevo en `site/` |
+| `node scripts/site.mjs list` | Lista las entradas con su estado |
+| `node scripts/site.mjs export` | Vuelca la base de datos a Markdown |
+| `node scripts/site.mjs sync [--prune]` | Importa `site/` a la base de datos |
+| `node scripts/site.mjs build [--drafts]` | Genera `public/` |
+| `node scripts/site.mjs check` | Audita integridad (base de datos y HTML) |
+| `node scripts/site.mjs publish` | `sync` + `check` + `build` |
+| `node scripts/site.mjs deploy [--dry-run]` | Publica en GitHub Pages |
+| `node scripts/import.mjs` | Reimporta el archivo de WordPress |
+| `node scripts/mirror-wp.mjs` | Vuelve a descargar el WordPress original |
+
+`--prune` retira de la base de datos las entradas cuyo archivo ya no existe
+en `site/`. Es lo que hay que usar para **despublicar** algo: borra el `.md` y
+ejecuta `node scripts/site.mjs sync --prune`.
+
+## Auditoría
+
+`node scripts/site.mjs check` comprueba, entre otras cosas, que:
+
+- no falte ningún archivo de medios ni ninguna variante de imagen;
+- cada imagen referenciada en el Markdown exista en disco;
+- no queden shortcodes ni entidades HTML sin resolver;
+- las fechas sean ISO-8601 UTC;
+- no haya enlaces ni recursos rotos en el HTML generado;
+- no se repitan slugs.
+
+Si algo falla, `publish` **no** genera el sitio: primero hay que arreglarlo.
+
+## De dónde viene el contenido
+
+El WordPress original estaba en Hostinger y ya no existe. Todo lo que había
+se conserva en `archive/`:
+
+| Carpeta | Contenido |
+|---|---|
+| `archive/rest/` | Contenido estructurado volcado desde la API REST (9 artículos, 1 página, 21 medios, categorías y etiquetas) |
+| `archive/media/` | Los 94 archivos de medios originales, con todas sus miniaturas |
+| `archive/html/` | HTML renderizado de las 25 URLs, como referencia visual |
+| `archive/manifest.json` | Inventario con el `sha256` de cada archivo descargado |
+
+Este archivo **no se debe borrar**: es la única copia del contenido original.
+
+## Despliegue
+
+El sitio se publica en `pikilon/pikilon.github.io`. Detalles importantes:
+
+- Ese dominio lo **comparten** otros proyectos del usuario (`die-hard-dice`,
+  `red-line`…), que viven en sus propios repositorios y se sirven como
+  subcarpetas. `scripts/deploy.mjs` sólo reemplaza lo que genera este sitio,
+  usando un manifiesto de la publicación anterior, y nunca toca las carpetas
+  protegidas.
+- `public/` **no** se versiona: se regenera con `build` y se copia al
+  repositorio con `deploy`.
+- Para servir el dominio propio hace falta un archivo `CNAME` con
+  `pikilon.com` y apuntar el DNS desde hPanel a GitHub Pages. No se ha hecho
+  todavía: mientras tanto, el sitio responde en
+  `https://pikilon.github.io/` y el WordPress antiguo sigue en el dominio.
+
+## Estructura del repositorio
+
+```
+archive/        copia del WordPress original (no borrar)
+assets/         recursos del sitio (imágenes migradas + favicon)
+db/             schema.sql y la base de datos generada
+site/           contenido en Markdown (fuente de verdad)
+scripts/        herramientas de importación, generación y despliegue
+public/         sitio generado (no versionado)
+.dsh/skills/    skill de publicación para el agente
+```
+
+## Requisitos
+
+Sólo **Node.js 22 o superior** (usa el módulo `node:sqlite` integrado). No hay
+`package.json`, ni dependencias, ni paso de compilación.

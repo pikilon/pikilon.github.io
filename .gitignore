@@ -1,0 +1,21 @@
+# Autogenerados: no se versionan.
+public/
+.deploy/
+.deploy-manifest.json
+
+# Base de datos: se reconstruye con `node scripts/import.mjs`.
+# El contenido vive en site/ y el archivo original en archive/.
+db/pikilon.db
+db/pikilon.db-wal
+db/pikilon.db-shm
+
+# Dumps de MySQL que deje el usuario para el respaldo (pueden ser grandes).
+*.sql
+*.sql.gz
+!archive/**/*.sql
+
+# Sondas y temporales.
+.probe/
+node_modules/
+.DS_Store
+*.log

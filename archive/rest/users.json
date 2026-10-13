@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "name": "francisco",
+    "url": "",
+    "description": "",
+    "link": "https://pikilon.com/author/francisco/",
+    "slug": "francisco",
+    "avatar_urls": {
+      "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+      "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+      "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+    },
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/users"
+        }
+      ]
+    }
+  }
+]

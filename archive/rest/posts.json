@@ -1,0 +1,2572 @@
+[
+  {
+    "id": 253,
+    "date": "2019-02-23T19:57:06",
+    "date_gmt": "2019-02-23T18:57:06",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=253"
+    },
+    "modified": "2020-12-08T14:19:29",
+    "modified_gmt": "2020-12-08T13:19:29",
+    "slug": "serverless-telegram-bot-using-firebase-in-5-minutes",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/code/serverless-telegram-bot-using-firebase-in-5-minutes/",
+    "title": {
+      "rendered": "Serverless Telegram Bot with Firebase"
+    },
+    "content": {
+      "rendered": "\n<p>Using <strong>(free)</strong> Firebase Cloud Functions  to start your first telegram bot, as always with Javascript.</p>\n\n\n\n<h2 class=\"wp-block-heading\">1. Create your bot</h2>\n\n\n\n<p>Easy and fast:</p>\n\n\n\n<ol><li>Search in telegram @BotFather or open <a rel=\"noreferrer noopener\" aria-label=\"this link (opens in a new tab)\" href=\"https://telegram.me/BotFather\" target=\"_blank\">this link</a></li><li>Write the command &#8220;<strong>/newBot </strong>&#8220;</li><li>Follow all the steps</li><li>Write down 2 things :<ol><li>bot name (finished in &#8216;bot&#8217;): In our example <strong>firebase_bot</strong></li><li>Secret Token (don&#8217;t miss it): in our example <strong>LONG_STRING_TOKEN</strong></li></ol></li></ol>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"783\" height=\"842\" src=\"https://pikilon.com/wp-content/uploads/2019/02/01-create-bot.png\" alt=\"\" class=\"wp-image-254\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/01-create-bot.png 783w, https://pikilon.com/wp-content/uploads/2019/02/01-create-bot-238x256.png 238w, https://pikilon.com/wp-content/uploads/2019/02/01-create-bot-476x512.png 476w, https://pikilon.com/wp-content/uploads/2019/02/01-create-bot-119x128.png 119w, https://pikilon.com/wp-content/uploads/2019/02/01-create-bot-714x768.png 714w\" sizes=\"(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px\" /><figcaption>Telegram bot creation</figcaption></figure>\n\n\n\n<h2 class=\"wp-block-heading\">2. Create your firebase project</h2>\n\n\n\n<p>Go to your firebase admin page</p>\n\n\n\n<ol><li>Go to your firebase console <a rel=\"noreferrer noopener\" aria-label=\"https://console.firebase.google.com (opens in a new tab)\" href=\"https://console.firebase.google.com\" target=\"_blank\">https://console.firebase.google.com</a></li><li>Add a new project</li><li><strong>Write down the final id</strong> of the project: in our example <strong>firebase-bot-560a7</strong></li></ol>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"1024\" height=\"858\" src=\"https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-1024x858.png\" alt=\"\" class=\"wp-image-256\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-1024x858.png 1024w, https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-256x215.png 256w, https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-512x429.png 512w, https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-128x107.png 128w, https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase-768x644.png 768w, https://pikilon.com/wp-content/uploads/2019/02/03-create-firebase.png 1168w\" sizes=\"(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px\" /><figcaption>Firebase project creation</figcaption></figure>\n\n\n\n<h2 class=\"wp-block-heading\" id=\"mce_4\">3. The code</h2>\n\n\n\n<p>I am going to assume you have Node and NPM installed in your system and you know how to use it</p>\n\n\n\n<h4 class=\"wp-block-heading\">3.1 Set the enviroment</h4>\n\n\n\n<ol><li>Install globally <strong>firebase-tools</strong>: npm install -g firebase-tools</li><li><strong>Login </strong>into firebase: <strong>firebase login</strong></li><li>Create a folder and run: npm init inside</li><li>Init firebase in the same folder: firebase init</li><li>Choose: <strong>Functions: Configure and deploy Cloud Functions</strong></li><li>Select a default Firebase project:<ol><li>We have a firebase project id created on the point 2.3, if this is shown in the options choose it</li><li>If the project is not there choose <strong>[create a new project]</strong> (we will pick the project later)</li></ol></li><li>Javascript or Typescript: (IMHO) <strong>Typescript</strong></li><li>TSLint: Y<strong>es</strong></li><li>install npm dependencies: <strong>Yes</strong></li><li> If in the point 6 you didn&#8217;t choose your firebase project set it now with: <strong>firebase use <em>firebase-bot-560a7</em></strong> (this has to be the id of your firebase project, point 2.3) </li><li>install functions dependencies:<ul><li><strong>cd functions</strong> folder</li><li><strong>npm install &#8211;save express cors</strong></li></ul></li></ol>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"947\" height=\"727\" src=\"https://pikilon.com/wp-content/uploads/2019/02/02-create-code.png\" alt=\"\" class=\"wp-image-262\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/02-create-code.png 947w, https://pikilon.com/wp-content/uploads/2019/02/02-create-code-256x197.png 256w, https://pikilon.com/wp-content/uploads/2019/02/02-create-code-512x393.png 512w, https://pikilon.com/wp-content/uploads/2019/02/02-create-code-128x98.png 128w, https://pikilon.com/wp-content/uploads/2019/02/02-create-code-768x590.png 768w\" sizes=\"(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px\" /></figure>\n\n\n\n<h4 class=\"wp-block-heading\" id=\"mce_24\">3.2 The actual code</h4>\n\n\n\n<p>Our bot will reply to any telegram message with a &#8220;Hello <em>message-user-first-name&#8221;</em></p>\n\n\n\n<p>We are going to create a <strong>router</strong> function in order to be the single entry point for all telegram messages.</p>\n\n\n<p>[codepen_embed height=&#8221;798&#8243; theme_id=&#8221;0&#8243; slug_hash=&#8221;ErqQLG&#8221; default_tab=&#8221;js&#8221; user=&#8221;pikilon&#8221;]See the Pen <a href=\"https://codepen.io/pikilon/pen/ErqQLG/\">Simple Firebase Cloud Telegram Bot</a> by Pikilon (<a href=\"https://codepen.io/pikilon\">@pikilon</a>) on <a href=\"https://codepen.io\">CodePen</a>.[/codepen_embed]</p>\n\n\n\n<h4 class=\"wp-block-heading\">3.3 Deploy your code</h4>\n\n\n\n<p>Now that you have create your bot code you need to upload it to firebase to be compiled and available</p>\n\n\n\n<ol><li>In the <strong>root</strong> of your project run: <strong>firebase deploy only &#8211;functions</strong></li><li>Wait until the process finish and <strong>write down the router function url</strong>: in our case https://us-central1-<strong>firebase</strong>-bot.cloudfunctions.net/router</li></ol>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"994\" height=\"705\" src=\"https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847.png\" alt=\"\" class=\"wp-image-263\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847.png 994w, https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-256x182.png 256w, https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-512x363.png 512w, https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-128x91.png 128w, https://pikilon.com/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-768x545.png 768w\" sizes=\"(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px\" /></figure>\n\n\n\n<h2 class=\"wp-block-heading\">4. Bind the bot to Firebase </h2>\n\n\n\n<p>Now you have the bot, you have your firebase cloud function running, you only need to connect them.</p>\n\n\n\n<ol><li>Go to your browser and put the bold text with your data, we have defined TOKEN in 1.4.2) and the url in 3.3.2 <strong>MAIN LAST &#8220;/&#8221;</strong><ul><li>https://api.telegram.org/bot<strong>LONG_STRING_TOKEN</strong>/setWebhook?url=https://us-central1-<strong>firebase-bot</strong>.cloudfunctions.net/router<strong>/ </strong></li></ul></li><li>Check is set correctly going to https://api.telegram.org/bot<strong>LONG_STRING_TOKEN</strong>﻿/getWebhookInfo</li></ol>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"789\" height=\"393\" src=\"https://pikilon.com/wp-content/uploads/2019/02/05-binded.png\" alt=\"\" class=\"wp-image-265\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/05-binded.png 789w, https://pikilon.com/wp-content/uploads/2019/02/05-binded-256x128.png 256w, https://pikilon.com/wp-content/uploads/2019/02/05-binded-512x255.png 512w, https://pikilon.com/wp-content/uploads/2019/02/05-binded-128x64.png 128w, https://pikilon.com/wp-content/uploads/2019/02/05-binded-768x383.png 768w\" sizes=\"(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px\" /><figcaption>Telegram bot and firebase binded</figcaption></figure>\n\n\n\n<h2 class=\"wp-block-heading\">5. Check the results</h2>\n\n\n\n<p>Let see it in action!<br>Open your bot in telegram and say hello to your creation</p>\n\n\n\n<figure class=\"wp-block-image\"><img loading=\"lazy\" decoding=\"async\" width=\"664\" height=\"567\" src=\"https://pikilon.com/wp-content/uploads/2019/02/06-result.png\" alt=\"\" class=\"wp-image-267\" srcset=\"https://pikilon.com/wp-content/uploads/2019/02/06-result.png 664w, https://pikilon.com/wp-content/uploads/2019/02/06-result-256x219.png 256w, https://pikilon.com/wp-content/uploads/2019/02/06-result-512x437.png 512w, https://pikilon.com/wp-content/uploads/2019/02/06-result-128x109.png 128w\" sizes=\"(max-width: 664px) 100vw, 664px\" /><figcaption>Voilá</figcaption></figure>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>Using (free) Firebase Cloud Functions to start your first telegram bot, as always with Javascript. 1. Create your bot Easy and fast: Search in telegram @BotFather or open this link Write the command &#8220;/newBot &#8220; Follow all the steps Write down 2 things : bot name (finished in &#8216;bot&#8217;): In our example firebase_bot Secret Token &hellip; </p>\n<p class=\"link-more\"><a href=\"https://pikilon.com/code/serverless-telegram-bot-using-firebase-in-5-minutes/\" class=\"more-link\">Continue reading<span class=\"screen-reader-text\"> &#8220;Serverless Telegram Bot with Firebase&#8221;</span></a></p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 288,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      3
+    ],
+    "tags": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/253"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=253"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 12,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/253/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 289,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/253/revisions/289"
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/media/288"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=253"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=253"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=253"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "id": 288,
+          "date": "2020-12-08T14:19:23",
+          "slug": "telegram_bot",
+          "type": "attachment",
+          "link": "https://pikilon.com/code/serverless-telegram-bot-using-firebase-in-5-minutes/attachment/telegram_bot/",
+          "title": {
+            "rendered": "telegram_bot"
+          },
+          "author": 1,
+          "featured_media": 0,
+          "caption": {
+            "rendered": ""
+          },
+          "alt_text": "",
+          "media_type": "image",
+          "mime_type": "image/png",
+          "media_details": {
+            "width": 586,
+            "height": 285,
+            "file": "2019/02/telegram_bot.png",
+            "sizes": {
+              "medium": {
+                "file": "telegram_bot-512x249.png",
+                "width": 512,
+                "height": 249,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/02/telegram_bot-512x249.png"
+              },
+              "thumbnail": {
+                "file": "telegram_bot-256x125.png",
+                "width": 256,
+                "height": 125,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/02/telegram_bot-256x125.png"
+              },
+              "twentyseventeen-thumbnail-avatar": {
+                "file": "telegram_bot-100x100.png",
+                "width": 100,
+                "height": 100,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/02/telegram_bot-100x100.png"
+              },
+              "full": {
+                "file": "telegram_bot.png",
+                "width": 586,
+                "height": 285,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/02/telegram_bot.png"
+              }
+            },
+            "image_meta": {
+              "aperture": "0",
+              "credit": "",
+              "camera": "",
+              "caption": "",
+              "created_timestamp": "0",
+              "copyright": "",
+              "focal_length": "0",
+              "iso": "0",
+              "shutter_speed": "0",
+              "title": "",
+              "orientation": "0",
+              "keywords": []
+            }
+          },
+          "source_url": "https://pikilon.com/wp-content/uploads/2019/02/telegram_bot.png",
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media/288"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media"
+              }
+            ],
+            "about": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/types/attachment"
+              }
+            ],
+            "author": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "replies": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/comments?post=288"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 3,
+            "link": "https://pikilon.com/cat/code/",
+            "name": "code",
+            "slug": "code",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/3"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=3"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        []
+      ]
+    }
+  },
+  {
+    "id": 246,
+    "date": "2019-01-30T23:57:09",
+    "date_gmt": "2019-01-30T22:57:09",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=246"
+    },
+    "modified": "2019-02-05T21:50:13",
+    "modified_gmt": "2019-02-05T20:50:13",
+    "slug": "browser-wars-ii-the-ios-betrayal",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/imho/browser-wars-ii-the-ios-betrayal/",
+    "title": {
+      "rendered": "Browser wars II: The iOS betrayal"
+    },
+    "content": {
+      "rendered": "\n<p>React Native or Flutter are here to help you to create easily your App in iOS or Android (even web),  using the same code and with an awesome performance. But there is only a little thing&#8230;</p>\n\n\n\n<h2 class=\"wp-block-heading\">The Golden years</h2>\n\n\n\n<p>Before the smartphones, after the reign of desktop applications we met the golden years of Web apps, web 2.0 was rising, and we found the UI <a href=\"https://en.wikipedia.org/wiki/Koin%C3%A9_language\" target=\"_blank\" rel=\"noreferrer noopener\" aria-label=\"koiné  (opens in a new tab)\">koiné </a>: <strong>HTML5&nbsp;.</strong></p>\n\n\n\n<p>If you wanted to develop an App for Windows, Linux, Mac and the first iPhone you wrote the interface in HTML and that works everywhere, HTML5 stole Java&#8217;s slogan: &#8220;<a rel=\"noreferrer noopener\" aria-label=\"Write once, run anywhere (opens in a new tab)\" href=\"https://en.wikipedia.org/wiki/Write_once,_run_anywhere\" target=\"_blank\">Write once, run anywhere</a>&#8220;</p>\n\n\n\n<blockquote class=\"wp-block-quote is-layout-flow wp-block-quote-is-layout-flow\"><p><strong>The only thing you need</strong> to develop an entire app was literally a <strong>plain text editor</strong></p></blockquote>\n\n\n\n<p>We left behind the hard part of  the first browser war, yes, we had Internet Explorer 8 giving troubles, but jQuery helped a lot. <br>Browser fought for being the more standard compliant, they fought to add richer experiences, and, as always, they fought to be the fastest one.</p>\n\n\n\n<p>In every device with a browser you had your app running, almos everywhere until&#8230;If you had a thing with a browser you browse your app there, and then&#8230;</p>\n\n\n\n<h2 class=\"wp-block-heading\">The iOS betrayal</h2>\n\n\n\n<p>There was no app store on the original iPhone, <a href=\"https://9to5mac.com/2011/10/21/jobs-original-vision-for-the-iphone-no-third-party-native-apps/\">It was meant to use HTML5 apps</a>.</p>\n\n\n\n<figure class=\"wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-4-3 wp-has-aspect-ratio\"><div class=\"wp-block-embed__wrapper\">\n<iframe loading=\"lazy\" title=\"Safari: iPhone Development Platform\" width=\"525\" height=\"394\" src=\"https://www.youtube.com/embed/8Vq993Td6ys?feature=oembed\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>\n</div></figure>\n\n\n\n<p>The web was perfect, this was the excuse to not have support for Adobe Flash, fighting for the standards they say.</p>\n\n\n\n<p>When the App store came Apple realized it was a gold mine, they could have a cut of any app working on the iPhone through the only available app source: <strong>their store.</strong></p>\n\n\n\n<p>Suddenly the good old HTML5 became an enemy to destroy, why support web apps with no Store fee? Let&#8217;s begin the boicot:</p>\n\n\n\n<ul><li>No webWorkers until yesterday, and now <a href=\"https://medium.com/@firt/progressive-web-apps-on-ios-are-here-d00430dee3a7#cafa\">very cripple one with limitations</a> such as no push notifications, you can&#8217;t add the app to the list with a link, no touch id, no more than 50Mb, etc.</li><li>Forget a workaround using third party browsers, they are forced to use the iOS engine with this limitations. </li><li>For develop any app in iOS you will need an Apple device, just like that. You can emulate Android on Mac, but you can emulate iOS outside a Mac. You will need Xcode one way or the other.</li></ul>\n\n\n\n<blockquote class=\"wp-block-quote is-layout-flow wp-block-quote-is-layout-flow\"><p>Regulations do their part to damage web app UX. Ignorants Politicians forced every web site to put a <strong>cookie banner</strong>, instead of encourage <strong>private browser&#8217;s mode.</strong></p></blockquote>\n\n\n\n<h2 class=\"wp-block-heading\">The false saviors</h2>\n\n\n\n<p>Oh gods! I wish to have something to code onces and deploy everywhere, web, iOS, Android, even desktop, with <strong>performance</strong>. Yes, the performance is the most important thing in your app, even if is a regular shop and your users will not notice the difference.</p>\n\n\n\n<h3 class=\"wp-block-heading\">React Native</h3>\n\n\n\n<p> Using Javascript and React you will be able to deploy <a href=\"https://github.com/react-everywhere/re-start\">literally everywhere</a> and with a <a href=\"https://medium.com/the-react-native-log/comparing-the-performance-between-native-ios-swift-and-react-native-7b5490d363e2\">theoretical performance 80% compared to native</a>. </p>\n\n\n\n<p>But to be honest this is a lie. <strong>You will make you choose</strong> between having a bad app on 3 platforms or spend 3x more time to have consistency between them. Two graphic examples to show that even the browser wars was a child game compared to the inconsistencies:</p>\n\n\n\n<ul><li>Styling<ul><li>Overflow-visible you can position text outside a box in iOS and web, but not in android. </li><li>You will be forced to use <a rel=\"noreferrer noopener\" aria-label=\"css-in-js  (opens in a new tab)\" href=\"https://hackernoon.com/all-you-need-to-know-about-css-in-js-984a72d48ebc\" target=\"_blank\">css-in-js </a>that generate crappy css files for the web. I will talk (badly) about css-in-js in the future</li></ul></li><li>SVG (multicolor): iOS doesn&#8217;t support it, android and web does, you will have to install a plugin and face consistences.</li></ul>\n\n\n\n<p>You can read more reasons why is not a solution from former react native <a href=\"https://medium.com/airbnb-engineering/sunsetting-react-native-1868ba28e30a\">fan AirBnB here.</a>React Native: using Javascript and React you will be able to deploy <a href=\"https://github.com/react-everywhere/re-start\">literally everywhere</a> </p>\n\n\n\n<h3 class=\"wp-block-heading\">Flutter</h3>\n\n\n\n<p>Google has money, React is from Facebook, let&#8217;s try to beat the React Native hype.</p>\n\n\n\n<p>With <a rel=\"noreferrer noopener\" aria-label=\"Flutter (opens in a new tab)\" href=\"https://medium.com/asos-techblog/flutter-vs-react-native-for-ios-android-app-development-c41b4e038db9\" target=\"_blank\">Flutter</a> you will code on Dart (<a rel=\"noreferrer noopener\" aria-label=\"wikipedia link here (opens in a new tab)\" href=\"https://en.wikipedia.org/wiki/Dart_(programming_language)\" target=\"_blank\">wikipedia link here</a>) and it will paint in a screen canvas your interface (less inconsistencies) and with great performance, they swear to get +15ms in rendering your kittens.</p>\n\n\n\n<ul><li>Who wants to learn Dart, manage yaml packages and <a rel=\"noreferrer noopener\" aria-label=\"flutter custom styling (opens in a new tab)\" href=\"https://flutter.io/docs/get-started/flutter-for/web-devs\" target=\"_blank\">flutter custom styling</a>? Tell your devs to start learning Dart to master it only for Flutter, or even worst tell a rookie to start with Dart language. Let&#8217;s everyone to learn <a rel=\"noreferrer noopener\" aria-label=\"esperanto (opens in a new tab)\" href=\"https://en.wikipedia.org/wiki/Esperanto\" target=\"_blank\">esperanto</a>, it will be fun!</li><li>No web currently, create another app in HTML5 or wait to the <a rel=\"noreferrer noopener\" aria-label=\"experimental  (opens in a new tab)\" href=\"https://medium.com/flutter-io/hummingbird-building-flutter-for-the-web-e687c2a023a8\" target=\"_blank\">experimental </a>becomes alpha.</li></ul>\n\n\n\n<h2 class=\"wp-block-heading\">The silver bullet</h2>\n\n\n\n<div class=\"wp-block-image\"><figure class=\"aligncenter\"><img decoding=\"async\" src=\"https://imgs.xkcd.com/comics/installing.png\" alt=\"\"/><figcaption>XKCD nailed again</figcaption></figure></div>\n\n\n\n<p>We want to have an App written with the same code, runs everywhere with UX consistency, with experience and support&#8230;what about HTML5? and you will only need a notepad and a browser to develop it.</p>\n\n\n\n<p>If you (really) need <strong>performance </strong>to do some operations, first review your code and if this is not enough check out <a rel=\"noreferrer noopener\" aria-label=\"webassembly  (opens in a new tab)\" href=\"https://webassembly.org/\" target=\"_blank\">webassembly </a>that offers up to 80% of native performance to make some heavy lifting. But really, check your code first.</p>\n\n\n\n<p>If you need something like push notifications in your app, start small, give support to the good guys that don&#8217;t cripple the web: Android and Desktop. If your app has huge success and you need iOS support use a web wrapper like <a rel=\"noreferrer noopener\" aria-label=\"cordova (opens in a new tab)\" href=\"https://cordova.apache.org/\" target=\"_blank\">Cordova</a>. I wish you luck to deal with Apple bureaucracy  to publish your app.</p>\n\n\n\n<p>And one last thing, web is open source, lots of developers has learned by right clicking the browser and inspecting the code. It was like open a hood of a car to see what was going on there. &#8220;How did this dev this that?&#8221;, &#8220;look he added this workaround to achive this effect&#8221;&#8230;</p>\n\n\n\n<h4 class=\"wp-block-heading\">you can&#8217;t right click a native App</h4>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>React Native or Flutter are here to help you to create easily your App in iOS or Android (even web), using the same code and with an awesome performance. But there is only a little thing&#8230; The Golden years Before the smartphones, after the reign of desktop applications we met the golden years of Web &hellip; </p>\n<p class=\"link-more\"><a href=\"https://pikilon.com/imho/browser-wars-ii-the-ios-betrayal/\" class=\"more-link\">Continue reading<span class=\"screen-reader-text\"> &#8220;Browser wars II: The iOS betrayal&#8221;</span></a></p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 249,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      2
+    ],
+    "tags": [
+      21,
+      15,
+      20,
+      19
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/246"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=246"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 2,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/246/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 248,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/246/revisions/248"
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/media/249"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=246"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=246"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=246"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "id": 249,
+          "date": "2019-01-30T23:56:40",
+          "slug": "platform-wars",
+          "type": "attachment",
+          "link": "https://pikilon.com/imho/browser-wars-ii-the-ios-betrayal/attachment/platform-wars/",
+          "title": {
+            "rendered": "platform-wars"
+          },
+          "author": 1,
+          "featured_media": 0,
+          "caption": {
+            "rendered": ""
+          },
+          "alt_text": "",
+          "media_type": "image",
+          "mime_type": "image/png",
+          "media_details": {
+            "width": 534,
+            "height": 348,
+            "file": "2019/01/platform-wars.png",
+            "sizes": {
+              "thumbnail": {
+                "file": "platform-wars-256x167.png",
+                "width": 256,
+                "height": 167,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/01/platform-wars-256x167.png"
+              },
+              "medium": {
+                "file": "platform-wars-512x334.png",
+                "width": 512,
+                "height": 334,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/01/platform-wars-512x334.png"
+              },
+              "micro": {
+                "file": "platform-wars-128x83.png",
+                "width": 128,
+                "height": 83,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/01/platform-wars-128x83.png"
+              },
+              "full": {
+                "file": "platform-wars.png",
+                "width": 534,
+                "height": 348,
+                "mime_type": "image/png",
+                "source_url": "https://pikilon.com/wp-content/uploads/2019/01/platform-wars.png"
+              }
+            },
+            "image_meta": {
+              "aperture": "0",
+              "credit": "",
+              "camera": "",
+              "caption": "",
+              "created_timestamp": "0",
+              "copyright": "",
+              "focal_length": "0",
+              "iso": "0",
+              "shutter_speed": "0",
+              "title": "",
+              "orientation": "0",
+              "keywords": []
+            }
+          },
+          "source_url": "https://pikilon.com/wp-content/uploads/2019/01/platform-wars.png",
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media/249"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media"
+              }
+            ],
+            "about": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/types/attachment"
+              }
+            ],
+            "author": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "replies": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/comments?post=249"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 2,
+            "link": "https://pikilon.com/cat/imho/",
+            "name": "IMHO",
+            "slug": "imho",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/2"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=2"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 21,
+            "link": "https://pikilon.com/tag/flutter/",
+            "name": "flutter",
+            "slug": "flutter",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/21"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=21"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 15,
+            "link": "https://pikilon.com/tag/html/",
+            "name": "html",
+            "slug": "html",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/15"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=15"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 20,
+            "link": "https://pikilon.com/tag/native/",
+            "name": "native",
+            "slug": "native",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/20"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=20"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 19,
+            "link": "https://pikilon.com/tag/react/",
+            "name": "react",
+            "slug": "react",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/19"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=19"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 239,
+    "date": "2017-06-28T09:05:50",
+    "date_gmt": "2017-06-28T08:05:50",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=239"
+    },
+    "modified": "2017-06-28T09:05:50",
+    "modified_gmt": "2017-06-28T08:05:50",
+    "slug": "rem-em-love-story",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/code/rem-em-love-story/",
+    "title": {
+      "rendered": "Rem + em, a love story"
+    },
+    "content": {
+      "rendered": "<p><figure id=\"attachment_241\" aria-describedby=\"caption-attachment-241\" style=\"width: 512px\" class=\"wp-caption aligncenter\"><a href=\"https://pikilon.com/wp-content/uploads/2017/06/REM.jpg\"><img loading=\"lazy\" decoding=\"async\" class=\"wp-image-241 size-medium\" src=\"https://pikilon.com/wp-content/uploads/2017/06/REM-512x512.jpg\" alt=\"\" width=\"512\" height=\"512\" srcset=\"https://pikilon.com/wp-content/uploads/2017/06/REM-512x512.jpg 512w, https://pikilon.com/wp-content/uploads/2017/06/REM-256x256.jpg 256w, https://pikilon.com/wp-content/uploads/2017/06/REM-128x128.jpg 128w, https://pikilon.com/wp-content/uploads/2017/06/REM-768x768.jpg 768w, https://pikilon.com/wp-content/uploads/2017/06/REM.jpg 1000w\" sizes=\"(max-width: 512px) 100vw, 512px\" /></a><figcaption id=\"caption-attachment-241\" class=\"wp-caption-text\">Not this REM but&#8230;</figcaption></figure></p>\n<p>With the new times using javascript for everything on the frontend (React.js, Angular.js) CSS is targeting more and more modular coding.</p>\n<p>This is why if you are progressing in CSS you should learn <a href=\"http://getbem.com/\" target=\"_blank\" rel=\"noopener noreferrer\">BEM</a> naming conventions.</p>\n<p>A common problem I found is the designer use REM units for everything (or even worst PX) because they fear if you use relative units it will be affected by the context, and they want the css rules to be as standalaone as they could. There is a mayor problem with this approach because if you create different sizes of the same component, or you want to change the layout you have to rewrite all the sized attributes. This means more code, more complexity, hard readability&#8230;</p>\n<p>The solution is to use REM units in the parent and use EM in everychildren, so when you make only a big mediaquery in the body and it will adapt itself all the way down in the body.</p>\n<p>Check out this example code I made in codepen.</p>\n<p>[codepen_embed height=&#8221;265&#8243; theme_id=&#8221;0&#8243; slug_hash=&#8221;KqXbWr&#8221; default_tab=&#8221;css,result&#8221; user=&#8221;pikilon&#8221;]See the Pen &lt;a href=&#8217;https://codepen.io/pikilon/pen/KqXbWr/&#8217;&gt;CSS relative units in component layouting&lt;/a&gt; by Pikilon (&lt;a href=&#8217;https://codepen.io/pikilon&#8217;&gt;@pikilon&lt;/a&gt;) on &lt;a href=&#8217;https://codepen.io&#8217;&gt;CodePen&lt;/a&gt;.[/codepen_embed]</p>\n<p>&nbsp;</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>With the new times using javascript for everything on the frontend (React.js, Angular.js) CSS is targeting more and more modular coding. This is why if you are progressing in CSS you should learn BEM naming conventions. A common problem I found is the designer use REM units for everything (or even worst PX) because they fear &hellip; </p>\n<p class=\"link-more\"><a href=\"https://pikilon.com/code/rem-em-love-story/\" class=\"more-link\">Continue reading<span class=\"screen-reader-text\"> &#8220;Rem + em, a love story&#8221;</span></a></p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 241,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      3
+    ],
+    "tags": [
+      18,
+      16,
+      15
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/239"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=239"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 4,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/239/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 244,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/239/revisions/244"
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/media/241"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=239"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=239"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=239"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:featuredmedia": [
+        {
+          "id": 241,
+          "date": "2017-06-28T09:02:58",
+          "slug": "rem",
+          "type": "attachment",
+          "link": "https://pikilon.com/code/rem-em-love-story/attachment/rem/",
+          "title": {
+            "rendered": "REM"
+          },
+          "author": 1,
+          "featured_media": 0,
+          "caption": {
+            "rendered": ""
+          },
+          "alt_text": "",
+          "media_type": "image",
+          "mime_type": "image/jpeg",
+          "media_details": {
+            "width": 1000,
+            "height": 1000,
+            "file": "2017/06/REM.jpg",
+            "sizes": {
+              "thumbnail": {
+                "file": "REM-256x256.jpg",
+                "width": 256,
+                "height": 256,
+                "mime_type": "image/jpeg",
+                "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM-256x256.jpg"
+              },
+              "medium": {
+                "file": "REM-512x512.jpg",
+                "width": 512,
+                "height": 512,
+                "mime_type": "image/jpeg",
+                "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM-512x512.jpg"
+              },
+              "micro": {
+                "file": "REM-128x128.jpg",
+                "width": 128,
+                "height": 128,
+                "mime_type": "image/jpeg",
+                "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM-128x128.jpg"
+              },
+              "medium-large": {
+                "file": "REM-768x768.jpg",
+                "width": 768,
+                "height": 768,
+                "mime_type": "image/jpeg",
+                "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM-768x768.jpg"
+              },
+              "full": {
+                "file": "REM.jpg",
+                "width": 1000,
+                "height": 1000,
+                "mime_type": "image/jpeg",
+                "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM.jpg"
+              }
+            },
+            "image_meta": {
+              "aperture": "0",
+              "credit": "",
+              "camera": "",
+              "caption": "",
+              "created_timestamp": "0",
+              "copyright": "",
+              "focal_length": "0",
+              "iso": "0",
+              "shutter_speed": "0",
+              "title": "",
+              "orientation": "0",
+              "keywords": []
+            }
+          },
+          "source_url": "https://pikilon.com/wp-content/uploads/2017/06/REM.jpg",
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media/241"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/media"
+              }
+            ],
+            "about": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/types/attachment"
+              }
+            ],
+            "author": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "replies": [
+              {
+                "embeddable": true,
+                "href": "https://pikilon.com/wp-json/wp/v2/comments?post=241"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 3,
+            "link": "https://pikilon.com/cat/code/",
+            "name": "code",
+            "slug": "code",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/3"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=3"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 18,
+            "link": "https://pikilon.com/tag/bem/",
+            "name": "bem",
+            "slug": "bem",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/18"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=18"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 16,
+            "link": "https://pikilon.com/tag/css/",
+            "name": "css",
+            "slug": "css",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/16"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=16"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 15,
+            "link": "https://pikilon.com/tag/html/",
+            "name": "html",
+            "slug": "html",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/15"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=15"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 222,
+    "date": "2016-04-12T16:51:36",
+    "date_gmt": "2016-04-12T15:51:36",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=222"
+    },
+    "modified": "2019-02-05T21:49:33",
+    "modified_gmt": "2019-02-05T20:49:33",
+    "slug": "better-bootstrap-grid",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/code/better-bootstrap-grid/",
+    "title": {
+      "rendered": "Better bootstrap grid"
+    },
+    "content": {
+      "rendered": "<p>Bootstrap is a great framework (if is in the right hands) and the grid system is one os the most used tools, but isn&#8217;t is very repetitive to write?</p>\n<p>If your answer is yes you&#8217;ll like this unobtrusive bootstrap addon I made. Make grid faster, without writing &#8220;col-md-2&#8221; six times (in each column).</p>\n<p>I add two more things: <strong>no-gap</strong> columns and a <strong>10 columns based</strong> grid (using col10-*-* and <strong>.row.base10</strong>-*-*)</p>\n<p>And you can see documentation and download the file in my <a href=\"https://github.com/pikilon/bootstrap-addon-shorter-grid\" target=\"_blank\">github here</a><br />\nYou have an example here</p>\n<p>[codepen_embed height=&#8221;265&#8243; theme_id=&#8221;dark&#8221; slug_hash=&#8221;vKBgJp&#8221; default_tab=&#8221;result&#8221; user=&#8221;pikilon&#8221;]See the Pen &lt;a href=&#8217;https://codepen.io/pikilon/pen/vKBgJp/&#8217;&gt;Bootstrap addon better grid (add it before the bootstrap library)&lt;/a&gt; by Pikilon (&lt;a href=&#8217;http://codepen.io/pikilon&#8217;&gt;@pikilon&lt;/a&gt;) on &lt;a href=&#8217;http://codepen.io&#8217;&gt;CodePen&lt;/a&gt;.[/codepen_embed]</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>This small script will improve the default bootstrap grid, <strong>add it before bootstrap css</strong></p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      3
+    ],
+    "tags": [
+      16,
+      15
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/222"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=222"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 8,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/222/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 232,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/222/revisions/232"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=222"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=222"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=222"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 3,
+            "link": "https://pikilon.com/cat/code/",
+            "name": "code",
+            "slug": "code",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/3"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=3"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 16,
+            "link": "https://pikilon.com/tag/css/",
+            "name": "css",
+            "slug": "css",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/16"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=16"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 15,
+            "link": "https://pikilon.com/tag/html/",
+            "name": "html",
+            "slug": "html",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/15"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=15"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 180,
+    "date": "2015-12-14T23:28:23",
+    "date_gmt": "2015-12-14T23:28:23",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=180"
+    },
+    "modified": "2015-12-15T00:20:46",
+    "modified_gmt": "2015-12-15T00:20:46",
+    "slug": "no-more-modals",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/imho/no-more-modals/",
+    "title": {
+      "rendered": "No more modals"
+    },
+    "content": {
+      "rendered": "<p>Lightboxes, a modal windows, whatever&#8230; someone has to stop this.</p>\n<p>Like the slider is something that is requested for almost any user interaction</p>\n<p><strong>Phones don&#8217;t respond well to them</strong></p>\n<p><figure id=\"attachment_183\" aria-describedby=\"caption-attachment-183\" style=\"width: 288px\" class=\"wp-caption aligncenter\"><a href=\"https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone.jpg\" target=\"_blank\" rel=\"attachment wp-att-183\"><img loading=\"lazy\" decoding=\"async\" class=\"size-medium wp-image-183\" src=\"https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-288x512.jpg\" alt=\"Yeah this is a modal on my phone\" width=\"288\" height=\"512\" srcset=\"https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-288x512.jpg 288w, https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-144x256.jpg 144w, https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-576x1024.jpg 576w, https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-72x128.jpg 72w, https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone-432x768.jpg 432w, https://pikilon.com/wp-content/uploads/2015/12/modal-on-phone.jpg 1080w\" sizes=\"(max-width: 288px) 100vw, 288px\" /></a><figcaption id=\"caption-attachment-183\" class=\"wp-caption-text\">Yeah this is a modal on my phone</figcaption></figure></p>\n<p>You could end up cropping the window, making impossible to zoom in/out, or <strong>worst, the user hit &#8220;back&#8221; </strong>and it could leaving your site.</p>\n<p>If you have an image use <strong>&#8220;open in a new window&#8221;</strong> link, saves time, css/js and the results are better.</p>\n<p><figure id=\"attachment_184\" aria-describedby=\"caption-attachment-184\" style=\"width: 288px\" class=\"wp-caption aligncenter\"><a href=\"https://pikilon.com/wp-content/uploads/2015/12/link_new_window.jpg\" target=\"_blank\" rel=\"attachment wp-att-184\"><img loading=\"lazy\" decoding=\"async\" class=\"wp-image-184 size-medium\" src=\"https://pikilon.com/wp-content/uploads/2015/12/link_new_window-288x512.jpg\" alt=\"link_new_window\" width=\"288\" height=\"512\" srcset=\"https://pikilon.com/wp-content/uploads/2015/12/link_new_window-288x512.jpg 288w, https://pikilon.com/wp-content/uploads/2015/12/link_new_window-144x256.jpg 144w, https://pikilon.com/wp-content/uploads/2015/12/link_new_window-576x1024.jpg 576w, https://pikilon.com/wp-content/uploads/2015/12/link_new_window-72x128.jpg 72w, https://pikilon.com/wp-content/uploads/2015/12/link_new_window-432x768.jpg 432w, https://pikilon.com/wp-content/uploads/2015/12/link_new_window.jpg 1080w\" sizes=\"(max-width: 288px) 100vw, 288px\" /></a><figcaption id=\"caption-attachment-184\" class=\"wp-caption-text\">Same page, same image but showing the jpg without modal.</figcaption></figure></p>\n<p>&nbsp;</p>\n<p><strong>Awful interfaces</strong></p>\n<p>I have seen 5 levels of modals, or generate one for things that can be solve with an &#8220;confirmation&#8221; prompt or even an alert.</p>\n<p><figure style=\"width: 640px\" class=\"wp-caption aligncenter\"><a href=\"https://processwire.com/talk/topic/11482-ux-nightmare-nested-modals-in-theme-default-reno/\"><img loading=\"lazy\" decoding=\"async\" class=\"\" src=\"http://s9.postimg.org/i89jn2fn3/inception.png\" alt=\"\" width=\"640\" height=\"404\" /></a><figcaption class=\"wp-caption-text\">More levels, more!</figcaption></figure></p>\n<p>Try to use other UI like Tabs, slidedowns, when ever is possible it will be more friendly for the user. <strong>Very often the modal is a fast solution because we haven&#8217;t spent enough time thinking the right answer to the problem:</strong> where to put the form, where add some confirmation button, etc.</p>\n<p>In conclusion: modals are the new 90&#8217;s Pop Up windows, are related with the annoying advertisement and should be use only if we need to shake the user and screen him &#8220;look here idiot, do what I told you&#8221;.</p>\n<p>&nbsp;</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>The lightbox/Modal windows are overused this years, are the new 90&#8217;s Pop Up windows, so think it twice before use them.</p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      2
+    ],
+    "tags": [
+      15
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/180"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=180"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 3,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/180/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 185,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/180/revisions/185"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=180"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=180"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=180"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 2,
+            "link": "https://pikilon.com/cat/imho/",
+            "name": "IMHO",
+            "slug": "imho",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/2"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=2"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 15,
+            "link": "https://pikilon.com/tag/html/",
+            "name": "html",
+            "slug": "html",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/15"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=15"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 166,
+    "date": "2015-12-14T21:03:22",
+    "date_gmt": "2015-12-14T21:03:22",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=166"
+    },
+    "modified": "2016-02-29T18:23:17",
+    "modified_gmt": "2016-02-29T17:23:17",
+    "slug": "codeanywhere-literally-anywhere",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/imho/codeanywhere-literally-anywhere/",
+    "title": {
+      "rendered": "CodeAnyWhere, literally, anywhere"
+    },
+    "content": {
+      "rendered": "<p><a href=\"http://codeanywhere.com\" target=\"_blank\">\n<picture><source srcset=\"https://pikilon.com/wp-content/uploads/2015/12/codeanywhere_logo.webp\" type=\"image/webp\" /></picture> <picture> <img decoding=\"async\" src=\"https://pikilon.com/wp-content/uploads/2015/12/codeanywhere_logo.png\" alt=\"Codeanywhere Logo\" /></picture></a></p>\n<p>This are the IDEs I&#8217;ve used</p>\n<ul>\n<li>Dreamweaver: It was ok to start like 15 years ago.</li>\n<li>Notepad++: the best back then, but no linux, so no thanks.</li>\n<li>Sublime text: I can&#8217;t put &#8220;love it&#8221; enough times to express what I fell for it, despite the annoying messages to buy the app or the plugins.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Brackets_(text_editor)\" target=\"_blank\">Brackets</a>: very cool, cool enough to envolve Adobe, and more important, open source. No enough plugins to win to sublime.</li>\n</ul>\n<p>But Codeanywhere is like the &#8220;One Ring&#8221; for web developers: <strong>A web developed IDE to rule them all. </strong>This very site it&#8217;s been developed on it!</p>\n<p><strong>Main features:</strong></p>\n<ul>\n<li><b>Any Browser, any devices:</b> Your computer broke, you can go to another computer and continue working where your was, doesn&#8217;t matter if is linux, mac or Windows. No computer near? you can use it on tablet or smartphone (even use chromecast to see it on the TV) it has apps for iOs and Android.</li>\n<li><strong>Free version</strong>: Only 1 FTP and 1 virtual machines is more than enough to see if you are comfort with it. I already switched to pay version.</li>\n<li><strong>Virtual machines (containers)</strong>: You can generate your own ones preconfigured and start developing in seconds, nothing of command lines on linux, nothing of missing libraries, updates or so. You have ubuntu/centos machines with lot of setups: Laravel, Php7, wordpress, Symphony, node.js, Mean, ember, meteor, backbone, swift&#8230;\n<ul>\n<li>You can connect to this virtual machines with a web SSH client</li>\n</ul>\n</li>\n<li><strong>Multiple storage clients</strong>: FTP, SFTP, Dropbox, Git, Google drive, Amazon S3 you name it.</li>\n<li><strong>Friendly editor: </strong>It&#8217;s clearly inspired by the best: Sublime Text, it has emmet preinstaled, you have shortcuts (configurable) , multiline selection, regular expresions search/replace, multiple code linting, html/css beautyfier.</li>\n</ul>\n<p class=\"text-center\"><a href=\"https://pikilon.com/wp-content/uploads/2015/12/codeanywhere_containers.jpg\" target=\"_blank\"><br />\n[lazy_responsive_img ids=&#8221;172&#8243;]<br />\n<strong> Yeah, they already have PHP7! </strong><br />\n</a></p>\n<p>If some codeanywhere developer is reading this here it is some improvements to make:</p>\n<ul>\n<li>History in tab switching: so you can alternate between 2 tabs by pressing a single keyboard shortcut.</li>\n<li>Php beautifier: and other languages.</li>\n<li>Sass css: Classes highlight is in a grey hard to read, I have to switch to CSS in order to beautify the code, which works nice.</li>\n<li>Html: closing tag underlining when open one is selected, so you don&#8217;t have to collapse the tag.</li>\n<li>Mouse multiline selection (like sublime with right button).</li>\n<li>Code snippets and macros creation</li>\n<li>Docblock support with the snippet &#8220;/**&#8221;</li>\n<li>Better Emmet on CSS, so you can write &#8220;tt&#8221;+TAB and is processed to &#8220;text-transform: &#8220;</li>\n</ul>\n<p>&nbsp;</p>\n<p>&nbsp;</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>if you are a web developer you&#8217;ll love codeanywhere, a webapp based IDE that rules!</p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      2
+    ],
+    "tags": [
+      8
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/166"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=166"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 10,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/166/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 219,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/166/revisions/219"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=166"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=166"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=166"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 2,
+            "link": "https://pikilon.com/cat/imho/",
+            "name": "IMHO",
+            "slug": "imho",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/2"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=2"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 8,
+            "link": "https://pikilon.com/tag/php/",
+            "name": "Php",
+            "slug": "php",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/8"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=8"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 156,
+    "date": "2015-12-14T19:28:50",
+    "date_gmt": "2015-12-14T19:28:50",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=156"
+    },
+    "modified": "2015-12-14T21:03:16",
+    "modified_gmt": "2015-12-14T21:03:16",
+    "slug": "firefox-and-webp",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/imho/firefox-and-webp/",
+    "title": {
+      "rendered": "Firefox and WebP"
+    },
+    "content": {
+      "rendered": "<picture><source srcset=\"https://pikilon.com/wp-content/uploads/2015/12/webp1.webp\" type=\"image/webp\" /><img decoding=\"async\" src=\"https://pikilon.com/wp-content/uploads/2015/12/webp1.png\" alt=\"Webp Logo\" />\n</picture>\n<p>This image is using a <strong>.webp</strong> file instead of using a <strong>.png</strong>, it has <strong>transparency</strong>, it has lossless quality and <strong>only weights the 60%</strong> of the same PNG. Half size = double speed.</p>\n<p>It also supports lossy compression (like a JPG) so, if you need transparency without the huge size of a PNG, which is a big deal. <a href=\"https://en.wikipedia.org/wiki/WebP\" target=\"_blank\">The Web developers were very happy in 2010 when google released </a>this <strong>open</strong> standard.</p>\n<p>It&#8217;s been 60 internet years and Mozilla still refuses to implement it in their browser, in a first moment<a href=\"http://arstechnica.com/information-technology/2014/07/we-dont-need-new-image-formats-mozilla-works-to-build-a-better-jpeg/\" target=\"_blank\"> they say they will come with a better jpeg format.</a> Where is it? no one knows.<br />\nWe can understand <a href=\"https://en.wikipedia.org/wiki/Comparison_of_web_browsers#Image_format_support\" target=\"_blank\">this way of doing things from Microsoft, or Apple</a> (because they want a proprietary  standard to make some bucks) but from Mozilla is a shame. More even they join this companies supporting .h264 video format.</p>\n<p>So, when someone ask me which browser is the best I&#8217;ll go with chromium, for this and other reasons.</p>\n<p>Ah, in the case you are in Firefox and you are seeing the image is because I added an HTML5 fallback <strong>with the two images (PNG/Webp)</strong>.  Don&#8217;t fool yourself, it works but is far to be a solution, you are still downloading a big PNG and I had to upload 2 images.</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>Why doesn&#8217;t mozilla support Webp image format? because F*** you, that&#8217;s why</p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      2
+    ],
+    "tags": [
+      12
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/156"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=156"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 7,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/156/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 165,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/156/revisions/165"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=156"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=156"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=156"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 2,
+            "link": "https://pikilon.com/cat/imho/",
+            "name": "IMHO",
+            "slug": "imho",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/2"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=2"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 12,
+            "link": "https://pikilon.com/tag/img/",
+            "name": "image",
+            "slug": "img",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/12"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=12"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 152,
+    "date": "2015-12-14T18:09:21",
+    "date_gmt": "2015-12-14T18:09:21",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=152"
+    },
+    "modified": "2015-12-14T19:13:58",
+    "modified_gmt": "2015-12-14T19:13:58",
+    "slug": "your-first-wordpress-shortcode",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/code/your-first-wordpress-shortcode/",
+    "title": {
+      "rendered": "Your first WordPress shortcode"
+    },
+    "content": {
+      "rendered": "<p>The shortcode are a very powerful tool and could be intimidating if you only have a basic knowledge in programming but I assure you: easy as hell</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>Don&#8217;t be afraid, make your own Wordpress shordcode today!</p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      3
+    ],
+    "tags": [
+      8,
+      9
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/152"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=152"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 2,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/152/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 154,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/152/revisions/154"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=152"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=152"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=152"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 3,
+            "link": "https://pikilon.com/cat/code/",
+            "name": "code",
+            "slug": "code",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/3"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=3"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 8,
+            "link": "https://pikilon.com/tag/php/",
+            "name": "Php",
+            "slug": "php",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/8"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=8"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 9,
+            "link": "https://pikilon.com/tag/wp/",
+            "name": "wordpress",
+            "slug": "wp",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/9"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=9"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": 133,
+    "date": "2015-12-14T00:23:21",
+    "date_gmt": "2015-12-14T00:23:21",
+    "guid": {
+      "rendered": "https://pikilon.com/?p=133"
+    },
+    "modified": "2020-11-21T10:42:49",
+    "modified_gmt": "2020-11-21T09:42:49",
+    "slug": "implement-lazy-responsive-images-in-your-wordpress",
+    "status": "publish",
+    "type": "post",
+    "link": "https://pikilon.com/code/implement-lazy-responsive-images-in-your-wordpress/",
+    "title": {
+      "rendered": "Implement Lazy Responsive images in your wordpress"
+    },
+    "content": {
+      "rendered": "<p>Webpages are read from top to bottom, and by&nbsp;bottom I&nbsp;mean the end of the whole content, even the&nbsp;one you are never going to see.</p>\n<p>Video is the most bandwidth consumer in internet, but if you are in your phone, <strong>the browser will protect you avoiding video &#8220;autoplay&#8221;,&nbsp;</strong>but no with the images. So, sometimes, the browser will save your data plan avoiding play a 200 Kb&nbsp;background video, but it will be ok if the proud guy with the portfolio decided to put 30 Mb of images on a single page.</p>\n<p>But because surely a lot of readers don&#8217;t give a damn about clients data plans I&#8217;ll say the magic words:&nbsp;Save bandwidth<strong> is very good for SEO.</strong> Less Mb = more speed loading = better ranking. Google knows that regular&nbsp;user&nbsp;is impatient and will hit &#8220;back&#8221; on a search result if takes long to load.</p>\n<p><strong>What is a lazy image?</strong>&nbsp;An image that will not download any data until is visible in the screen. Usually&nbsp;it&#8217;ll start to load when is closer to be seen,&nbsp;avoiding the wait to show up. So if you fill the site with hundreds of images it won&#8217;t matter until you scroll down. The browser doesn&#8217;t do it by itself so we&#8217;ll need a javascript solution.</p>\n<p>We are saving a lot of data here, but it is not enough.</p>\n<p>Very often you see a really big image in a very small screen. Imagine an slider with 5 images of 1200&#215;700 px, and you are seen them in portrait mode in a&nbsp;720&#215;1280 screen, so in the end, you&#8217;ll &nbsp;see five 720&#215;420 images with 4 times more (surface) weight they should have.</p>\n<p><a class=\"medium-image-center\" href=\"http://harperandneyer.com/complementos\" target=\"_blank\" rel=\"noopener noreferrer\"><br />\n[lazy_responsive_img ids=&#8221;144&#8243;]</a></p>\n<p>EG: 600&#215;600 images shown as 150&#215;150, and some PNGs!</p>\n<p><strong>What is a responsive&nbsp;image?</strong>&nbsp;An image&nbsp;with a set of source files that will load the closer to the size is been seen. It is included in HTML5 and it can be coded in two ways, adding a <strong>&#8220;srcset&#8221; attribute </strong>to an &lt;img&gt; tab or use the HTML5 &#8220;picture&#8221; tag with different sources. &nbsp;I am not going to repeat<a href=\"http://www.smashingmagazine.com/2014/05/responsive-images-done-right-guide-picture-srcset/\" target=\"_blank\" rel=\"noopener noreferrer\"> the great article from Smashing magazine</a> with all the info you are gonna need.</p>\n<p>It has one big&nbsp;annoying&nbsp;issue, you have to calculate (using media queries) which file to serve using mediaqueries, a good pain in the ass.</p>\n<p><strong>Shouldn&#8217;t be great have&nbsp;one solution to have lazy images and auto-responsive-images?</strong> &nbsp;meet <a href=\"https://github.com/aFarkas/lazysizes\" target=\"_blank\" rel=\"noopener noreferrer\">lazysizes</a></p>\n<p>This great plugin allows you to release this feature today (take care, not IE8 supported).</p>\n<p>So you want to use this on your WordPress theme, you don&#8217;t find the right plugin, and you want to learn how to do it, here you have what came with, put it on your functions.php o create a plugin, hope you like it!</p>\n<p>[gist id=&#8221;e6f8a1f1397efa9019de&#8221;]</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>What are they?, can be used today?,  How fast it going to become your website using them?</p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "closed",
+    "ping_status": "closed",
+    "sticky": false,
+    "template": "",
+    "format": "standard",
+    "meta": {
+      "footnotes": ""
+    },
+    "categories": [
+      3
+    ],
+    "tags": [
+      12,
+      10,
+      8,
+      9
+    ],
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/133"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/posts"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/post"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=133"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 27,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/133/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 286,
+          "href": "https://pikilon.com/wp-json/wp/v2/posts/133/revisions/286"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=133"
+        }
+      ],
+      "wp:term": [
+        {
+          "taxonomy": "category",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/categories?post=133"
+        },
+        {
+          "taxonomy": "post_tag",
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/tags?post=133"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ],
+      "wp:term": [
+        [
+          {
+            "id": 3,
+            "link": "https://pikilon.com/cat/code/",
+            "name": "code",
+            "slug": "code",
+            "taxonomy": "category",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories/3"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/categories"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/category"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?categories=3"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "id": 12,
+            "link": "https://pikilon.com/tag/img/",
+            "name": "image",
+            "slug": "img",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/12"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=12"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 10,
+            "link": "https://pikilon.com/tag/js/",
+            "name": "javascript",
+            "slug": "js",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/10"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=10"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 8,
+            "link": "https://pikilon.com/tag/php/",
+            "name": "Php",
+            "slug": "php",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/8"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=8"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          },
+          {
+            "id": 9,
+            "link": "https://pikilon.com/tag/wp/",
+            "name": "wordpress",
+            "slug": "wp",
+            "taxonomy": "post_tag",
+            "_links": {
+              "self": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags/9"
+                }
+              ],
+              "collection": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/tags"
+                }
+              ],
+              "about": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/taxonomies/post_tag"
+                }
+              ],
+              "wp:post_type": [
+                {
+                  "href": "https://pikilon.com/wp-json/wp/v2/posts?tags=9"
+                }
+              ],
+              "curies": [
+                {
+                  "name": "wp",
+                  "href": "https://api.w.org/{rel}",
+                  "templated": true
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

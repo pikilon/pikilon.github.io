@@ -1,0 +1,119 @@
+[
+  {
+    "id": 2,
+    "date": "2015-06-20T18:37:21",
+    "date_gmt": "2015-06-20T18:37:21",
+    "guid": {
+      "rendered": "https://pikilon.com/?page_id=2"
+    },
+    "modified": "2015-12-15T22:53:37",
+    "modified_gmt": "2015-12-15T22:53:37",
+    "slug": "home",
+    "status": "publish",
+    "type": "page",
+    "link": "https://pikilon.com/",
+    "title": {
+      "rendered": "Pleased to meet you"
+    },
+    "content": {
+      "rendered": "<div id=\"profile_photo\"><img loading=\"lazy\" decoding=\"async\" class=\"alignnone wp-image-187 size-thumbnail\" src=\"https://pikilon.com/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-231x256.jpg\" alt=\"pikilon_francisco_gutierrez\" width=\"231\" height=\"256\" srcset=\"https://pikilon.com/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-231x256.jpg 231w, https://pikilon.com/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-461x512.jpg 461w, https://pikilon.com/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-115x128.jpg 115w, https://pikilon.com/wp-content/uploads/2015/06/pikilon_francisco_gutierrez.jpg 538w\" sizes=\"(max-width: 231px) 100vw, 231px\" /></div>\n<p>It was about time to have my professional portfolio and here it is.</p>\n<p>I created this site as a way to promote my work and share tricks I learned. I am a developer so <strong>this site will be focused on performance, usability and readability.</strong></p>\n<p>I&#8217;ve been a web developer for 17 years and I want to share with you some <strong><a href=\"https://pikilon.com/category/code/\">code</a></strong> I found useful and some <strong><a href=\"https://pikilon.com/category/imho/\">opinions</a></strong> about web news (my blog). My fields of expertise are HTML, CSS, Javascript and Php. I also have video producing/editing knowledge because I studied and worked in that for a long time.</p>\n<p>&nbsp;</p>\n<p>I&#8217;ve just finished my Higher National Diploma (<strong>HND</strong>) in <strong>Web Application Development</strong> with <strong>First Class Honors</strong> in a record time.</p>\n<p>I do freelancing projects so if you like what you see and want to hire me feel free to contact me:</p>\n<ul>\n<li>[email]pikilon@gmail.com[/email]</li>\n<li><a href=\"https://www.facebook.com/piki.g.saraza\" target=\"_blank\">Facebook</a></li>\n<li><a href=\"https://twitter.com/nomaspatanes\" target=\"_blank\">Twitter</a></li>\n<li><a href=\"https://plus.google.com/+pikilon\" target=\"_blank\">Google+</a></li>\n</ul>\n<p>&nbsp;</p>\n",
+      "protected": false
+    },
+    "excerpt": {
+      "rendered": "<p>It was about time to have my professional portfolio and here it is. I created this site as a way to promote my work and share tricks I learned. I am a developer so this site will be focused on performance, usability and readability. I&#8217;ve been a web developer for 17 years and I want to share &hellip; </p>\n<p class=\"link-more\"><a href=\"https://pikilon.com/\" class=\"more-link\">Continue reading<span class=\"screen-reader-text\"> &#8220;Pleased to meet you&#8221;</span></a></p>\n",
+      "protected": false
+    },
+    "author": 1,
+    "featured_media": 0,
+    "parent": 0,
+    "menu_order": 0,
+    "comment_status": "open",
+    "ping_status": "closed",
+    "template": "",
+    "meta": {
+      "footnotes": ""
+    },
+    "_links": {
+      "self": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/pages/2"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/pages"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/types/page"
+        }
+      ],
+      "author": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+        }
+      ],
+      "replies": [
+        {
+          "embeddable": true,
+          "href": "https://pikilon.com/wp-json/wp/v2/comments?post=2"
+        }
+      ],
+      "version-history": [
+        {
+          "count": 16,
+          "href": "https://pikilon.com/wp-json/wp/v2/pages/2/revisions"
+        }
+      ],
+      "predecessor-version": [
+        {
+          "id": 193,
+          "href": "https://pikilon.com/wp-json/wp/v2/pages/2/revisions/193"
+        }
+      ],
+      "wp:attachment": [
+        {
+          "href": "https://pikilon.com/wp-json/wp/v2/media?parent=2"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "francisco",
+          "url": "",
+          "description": "",
+          "link": "https://pikilon.com/author/francisco/",
+          "slug": "francisco",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ef0929fe6ecdda4e7601529c0cc0ee4a?s=96&d=mm&r=g"
+          },
+          "_links": {
+            "self": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users/1"
+              }
+            ],
+            "collection": [
+              {
+                "href": "https://pikilon.com/wp-json/wp/v2/users"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

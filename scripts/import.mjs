@@ -1,0 +1,419 @@
+#!/usr/bin/env node
+/**
+ * import.mjs — Vuelca el archivo de WordPress en la base de datos simplificada.
+ *
+ * Fuentes, en orden de preferencia:
+ *   1. archive/rest/*.json  (REST API: contenido completo y público)
+ *   2. un dump .sql de Hostinger, si además quieres ajustes y borradores
+ *
+ * Este script es idempotente: se puede volver a ejecutar tantas veces como
+ * haga falta. Reconstruye db/pikilon.db desde cero salvo que se pase --keep,
+ * en cuyo caso sólo actualiza lo que ya exista.
+ *
+ * Uso:
+ *   node scripts/import.mjs               # reconstruye la BD desde el archivo
+ *   node scripts/import.mjs --keep        # conserva ediciones hechas a mano
+ *   node scripts/import.mjs --media       # además copia los medios a assets/
+ *   node scripts/import.mjs --dump=x.sql  # importa también un dump de MySQL
+ */
+
+import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { existsSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { expandShortcodes, htmlToMarkdown, htmlToText, stripSizeSuffix } from './html-to-md.mjs';
+import { parseSqlDump } from './mysql-import.mjs';
+import { exportToSite } from './publish.mjs';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ARCHIVE = join(ROOT, 'archive');
+const REST = join(ARCHIVE, 'rest');
+const DB_PATH = join(ROOT, 'db', 'pikilon.db');
+const ASSETS = join(ROOT, 'assets');
+
+const args = process.argv.slice(2);
+const KEEP = args.includes('--keep');
+const DO_MEDIA = args.includes('--media');
+const DUMP = (args.find((a) => a.startsWith('--dump=')) || '').split('=')[1] || null;
+
+/* ------------------------------------------------------------------ ayuda */
+
+const log = (...a) => console.log(...a);
+const readJson = async (p, fallback = null) => {
+  try {
+    return JSON.parse(await readFile(p, 'utf8'));
+  } catch {
+    return fallback;
+  }
+};
+
+/* --------------------------------------------------------------- medios */
+
+/**
+ * Copia cada recurso del archivo a assets/ y registra sus metadatos.
+ *
+ * Se copian TAMBIÉN todas las variantes (miniaturas, @2x…) que WordPress
+ * generó: los artículos las referencian dentro del HTML con su propio
+ * srcset, así que sin ellas aparecerían imágenes rotas.
+ *
+ * En la tabla `media` la ruta se guarda relativa a assets/ (sin el prefijo),
+ * porque esa carpeta es el origen de todos los recursos; el prefijo se añade
+ * al generar el sitio. Así puedes mover assets/ de sitio sin tocar la BD.
+ *
+ * @returns {{urlToPath: Map<string,string>, idToPath: Map<number,string>}}
+ */
+async function syncMedia(db) {
+  const media = (await readJson(join(REST, 'media.json'), [])) || [];
+  const urlToPath = new Map();
+  const idToPath = new Map();
+
+  const insert = db.prepare(`
+    INSERT INTO media (wp_id, path, mime, width, height, bytes, sha256, alt, caption, wp_source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const insertVariant = db.prepare(`
+    INSERT OR IGNORE INTO media_variants (media_id, name, path, width, height, bytes)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  /** Copia un recurso del archivo a assets/; devuelve su ruta relativa o null. */
+  const copyAsset = async (url) => {
+    if (!url || !isSiteAsset(url)) return null;
+    const rel = assetRel(url);
+    if (!rel) return null;
+    const from = join(ARCHIVE, 'media', rel);
+    if (!existsSync(from)) return null;
+    const to = join(ASSETS, rel);
+    await mkdir(dirname(to), { recursive: true });
+    const buf = await readFile(from);
+    await writeFile(to, buf);
+    return { rel, bytes: buf.length, sha: createHash('sha256').update(buf).digest('hex') };
+  };
+
+  let copied = 0;
+  let skipped = 0;
+
+  for (const m of media) {
+    const srcUrl = m.source_url;
+    if (!srcUrl) continue;
+
+    const local = await copyAsset(srcUrl);
+    if (local) copied++;
+    else skipped++;
+
+    const rel = assetRel(srcUrl);
+    const href = rel ? `assets/${rel}` : null;
+
+    const info = insert.run(
+      m.id ?? null,
+      rel,
+      m.mime_type ?? null,
+      m.media_details?.width ?? null,
+      m.media_details?.height ?? null,
+      local?.bytes ?? m.media_details?.filesize ?? null,
+      local?.sha ?? null,
+      m.alt_text ? htmlToText(m.alt_text) : null,
+      m.caption?.rendered ? htmlToText(m.caption.rendered) : null,
+      srcUrl,
+    );
+    const rowId = Number(info.lastInsertRowid);
+
+    urlToPath.set(srcUrl, href);
+    urlToPath.set(decodeURIComponent(srcUrl), href);
+    if (m.id != null) idToPath.set(m.id, href);
+
+    // Original + cada tamaño generado por WordPress, copiados de verdad.
+    const sizes = m.media_details?.sizes || {};
+    await insertVariant.run(rowId, 'original', rel, m.media_details?.width ?? null, m.media_details?.height ?? null, local?.bytes ?? null);
+    for (const [name, s] of Object.entries(sizes)) {
+      if (!s?.source_url) continue;
+      const v = await copyAsset(s.source_url);
+      if (v) copied++;
+      const vrel = assetRel(s.source_url);
+      urlToPath.set(s.source_url, `assets/${vrel}`);
+      await insertVariant.run(rowId, name, vrel, s.width ?? null, s.height ?? null, v?.bytes ?? s.filesize ?? null);
+    }
+  }
+
+  log(`  medios: ${copied} archivos copiados a assets/${skipped ? `, ${skipped} sin original` : ''}`);
+  return { urlToPath, idToPath };
+}
+
+/** Ruta relativa (sin prefijo) de un recurso a partir de su URL de WordPress. */
+function assetRel(url) {
+  try {
+    return decodeURIComponent(new URL(url).pathname.replace(/^\/+/, ''));
+  } catch {
+    return null;
+  }
+}
+
+/** Filtro barato: sólo interesan recursos del propio sitio. */
+function isSiteAsset(url) {
+  return /^https?:\/\/(www\.)?pikilon\.com\/wp-content\//i.test(url);
+}
+
+/* ------------------------------------------------------------- contenido */
+
+/** Convierte las categorías y etiquetas de WordPress en `terms`. */
+function importTerms(db, categories, tags) {
+  const insert = db.prepare(`
+    INSERT INTO terms (id, kind, slug, name, description, position) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  const byWpId = new Map();
+
+  for (const [i, c] of categories.entries()) {
+    const id = insert.run(c.id, 'category', c.slug, htmlToText(c.name), c.description ? htmlToText(c.description) : null, i).lastInsertRowid;
+    byWpId.set(c.id, Number(id));
+  }
+  for (const [i, t] of tags.entries()) {
+    const id = insert.run(t.id, 'tag', t.slug, htmlToText(t.name), t.description ? htmlToText(t.description) : null, i).lastInsertRowid;
+    byWpId.set(t.id, Number(id));
+  }
+  log(`  términos: ${categories.length} categorías, ${tags.length} etiquetas`);
+  return byWpId;
+}
+
+/**
+ * Limpia el extracto de WordPress.
+ * Los extractos automáticos acaban en «Continue reading “Título”» y vienen
+ * con el primer párrafo entero; aquí se recorta a una línea legible.
+ */
+function cleanSummary(html) {
+  let text = htmlToText(html);
+  if (!text) return '';
+  text = text
+    .replace(/\s*Continue reading\s*[“"'].*$/i, '')
+    .replace(/\s*Leer más\s*[“"'].*$/i, '')
+    .replace(/\s*\[…\]\s*$/, '')
+    .replace(/\s*…\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 200 ? `${text.slice(0, 197).trimEnd()}…` : text;
+}
+
+/** Importa artículos y páginas a `entries` + `entry_terms`. */
+function importEntries(db, posts, pages, termByWpId, imageMap, idToPath) {  const insertEntry = db.prepare(`
+    INSERT INTO entries
+      (kind, slug, title, summary, body, body_format, published_at, updated_at,
+       status, featured_id, lang, template, position, wp_id, wp_link, wp_modified)
+    VALUES (?, ?, ?, ?, ?, 'markdown', ?, ?, ?, ?, 'en', NULL, ?, ?, ?, ?)
+  `);
+  const insertTerm = db.prepare('INSERT OR IGNORE INTO entry_terms (entry_id, term_id) VALUES (?, ?)');
+  const findMedia = db.prepare('SELECT id FROM media WHERE wp_id = ?');
+
+  let count = 0;
+  const all = [
+    ...posts.map((p) => ({ ...p, _kind: 'post' })),
+    ...pages.map((p) => ({ ...p, _kind: 'page' })),
+  ];
+
+  for (const [i, item] of all.entries()) {
+    const raw = expandShortcodes(item.content?.rendered || '', idToPath);
+    const body = htmlToMarkdown(raw, { imageMap });
+
+    // Extracto: el de WordPress si existe, si no el primer párrafo del cuerpo.
+    const summary =
+      cleanSummary(item.excerpt?.rendered || '') ||
+      htmlToText(body).slice(0, 200).trim() ||
+      null;
+
+    // La imagen destacada se referencia por id de WordPress.
+    let featuredId = null;
+    if (item.featured_media) {
+      const row = findMedia.get(item.featured_media);
+      if (row) featuredId = row.id;
+    }
+
+    const info = insertEntry.run(
+      item._kind,
+      item.slug,
+      htmlToText(item.title?.rendered || item.slug),
+      summary,
+      body,
+      item.date_gmt ? `${item.date_gmt}Z` : null,
+      item.modified_gmt ? `${item.modified_gmt}Z` : null,
+      item.status === 'publish' ? 'published' : 'draft',
+      featuredId,
+      item._kind === 'page' ? i : 0,
+      item.id,
+      item.link ?? null,
+      item.modified_gmt ? `${item.modified_gmt}Z` : null,
+    );
+    const entryId = Number(info.lastInsertRowid);
+
+    for (const wpTerm of [...(item.categories || []), ...(item.tags || [])]) {
+      const termId = termByWpId.get(wpTerm);
+      if (termId) insertTerm.run(entryId, termId);
+    }
+    count++;
+  }
+  log(`  entradas: ${count} (${posts.length} artículos, ${pages.length} páginas)`);
+}
+
+/**
+ * Rellena la tabla `site` y `links`.
+ * El contenido del CV se toma de la página de inicio; los enlaces, del
+ * propio HTML de la home, que es donde vivían en WordPress.
+ */
+async function importSite(db, pages) {
+  const root = (await readJson(join(REST, 'site-root.json'), {})) || {};
+  const home = pages.find((p) => p.slug === 'home') || pages[0] || {};
+
+  db.prepare(`
+    INSERT INTO site (id, title, tagline, description, author_name, author_email, author_photo, lang, url, updated_at)
+    VALUES (1, ?, ?, ?, ?, ?, ?, 'en', ?, ?)
+  `).run(
+    htmlToText(root.name || 'Pikilon'),
+    htmlToText(root.description || ''),
+    htmlToText(root.description || ''),
+    'Francisco G. Sarazá',
+    'pikilon@gmail.com',
+    'assets/wp-content/uploads/2015/06/pikilon_francisco_gutierrez.jpg',
+    'https://pikilon.com',
+    new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
+  );
+
+  // Enlaces del CV: se extraen de los <a> de la home.
+  const links = [];
+  const html = home.content?.rendered || '';
+  for (const m of html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = m[1];
+    const label = htmlToText(m[2]);
+    if (!url || !label) continue;
+    if (/^https?:\/\/(www\.)?pikilon\.com/.test(url)) continue; // enlaces internos
+    links.push({ url, label });
+  }
+
+  const insertLink = db.prepare('INSERT INTO links (kind, label, url, icon, position) VALUES (?, ?, ?, ?, ?)');
+  const seen = new Set();
+  let pos = 0;
+  for (const l of links) {
+    if (seen.has(l.url)) continue;
+    seen.add(l.url);
+    const kind = l.url.startsWith('mailto:') ? 'contact' : 'social';
+    insertLink.run(kind, l.label, l.url, iconFor(l.url), pos++);
+  }
+  // Los enlaces a proyectos propios también cuentan como "project".
+  for (const l of links) {
+    if (/github\.com\/pikilon/i.test(l.url)) insertLink.run('project', l.label, l.url, 'github', pos++);
+  }
+  log(`  sitio: 1 fila, ${pos} enlaces`);
+}
+
+/** Icono aproximado según el dominio del enlace. */
+function iconFor(url = '') {
+  const map = {
+    'facebook.com': 'facebook', 'twitter.com': 'twitter', 'x.com': 'twitter',
+    'plus.google.com': 'google', 'linkedin.com': 'linkedin', 'github.com': 'github',
+    'codepen.io': 'codepen', 'youtube.com': 'youtube', 'instagram.com': 'instagram',
+  };
+  for (const [host, icon] of Object.entries(map)) if (url.includes(host)) return icon;
+  return url.startsWith('mailto:') ? 'mail' : 'link';
+}
+
+/* ------------------------------------------------------------------ main */
+
+async function main() {
+  const t0 = Date.now();
+  log('Importando el archivo de WordPress a la base de datos simplificada\n');
+
+  // 1. Cargar el archivo REST.
+  const posts = (await readJson(join(REST, 'posts.json'), [])) || [];
+  const pages = (await readJson(join(REST, 'pages.json'), [])) || [];
+  const categories = (await readJson(join(REST, 'categories.json'), [])) || [];
+  const tags = (await readJson(join(REST, 'tags.json'), [])) || [];
+  if (!posts.length && !pages.length) {
+    throw new Error('No hay archive/rest/posts.json ni pages.json. Ejecuta antes: node scripts/mirror-wp.mjs');
+  }
+
+  // 2. Base de datos limpia (el esquema se aplica siempre; es idempotente).
+  await mkdir(dirname(DB_PATH), { recursive: true });
+  if (!KEEP && existsSync(DB_PATH)) {
+    for (const suffix of ['', '-wal', '-shm']) await rm(DB_PATH + suffix, { force: true });
+  }
+  const db = new DatabaseSync(DB_PATH);
+  db.exec('PRAGMA foreign_keys = ON;');
+  db.exec(await readFile(join(ROOT, 'db', 'schema.sql'), 'utf8'));
+
+  if (KEEP) {
+    log('  modo --keep: no se borran datos existentes');
+  }
+
+  // 3. Medios (copia física + metadatos) para poder resolver las URLs.
+  log('\n[1/4] Medios');
+  const { urlToPath, idToPath } = await syncMedia(db);
+
+  // Mapa auxiliar: las URLs con sufijo de tamaño también resuelven al original.
+  const imageMap = new Map(urlToPath);
+  for (const [url, path] of urlToPath) {
+    imageMap.set(stripSizeSuffix(url), path);
+    imageMap.set(stripSizeSuffix(url).replace('https://pikilon.com/', 'https://www.pikilon.com/'), path);
+  }
+
+  // 4. Términos, entradas y sitio.
+  log('\n[2/4] Taxonomía');
+  const termByWpId = importTerms(db, categories, tags);
+
+  log('\n[3/4] Entradas');
+  importEntries(db, posts, pages, termByWpId, imageMap, idToPath);
+
+  log('\n[4/4] Identidad del sitio');
+  await importSite(db, pages);
+
+  // 5. Dump opcional de MySQL, si el usuario lo ha dejado en el repo.
+  const dumpPath = DUMP ? resolve(DUMP) : findDump();
+  if (dumpPath) {
+    log(`\n[+] Dump de MySQL: ${dumpPath.replace(ROOT + '/', '')}`);
+    try {
+      const summary = await parseSqlDump(await readFile(dumpPath, 'utf8'));
+      await writeFile(join(ROOT, 'db', 'dump-summary.json'), JSON.stringify(summary, null, 2));
+      log(`  ${summary.tables.length} tablas leídas -> db/dump-summary.json`);
+    } catch (err) {
+      log(`  ! no se pudo interpretar el dump: ${err.message}`);
+    }
+  } else {
+    log('\n[+] Sin dump de MySQL (opcional). Deja el .sql en la raíz y repite.');
+  }
+
+  // 6. Volcar el resultado a site/, que pasa a ser la fuente editable.
+  if (!args.includes('--no-export')) {
+    const n = exportToSite();
+    log(`\n[+] ${n} archivo(s) Markdown escritos en site/ — a partir de ahora se edita ahí.`);
+  }
+
+  // 7. Informe.
+  const stats = {
+    entries: db.prepare('SELECT COUNT(*) n FROM entries').get().n,
+    published: db.prepare("SELECT COUNT(*) n FROM entries WHERE status='published'").get().n,
+    media: db.prepare('SELECT COUNT(*) n FROM media').get().n,
+    variants: db.prepare('SELECT COUNT(*) n FROM media_variants').get().n,
+    terms: db.prepare('SELECT COUNT(*) n FROM terms').get().n,
+    links: db.prepare('SELECT COUNT(*) n FROM links').get().n,
+  };
+  db.exec(`INSERT INTO builds (started_at, finished_at, tool, entries, notes)
+           VALUES ('${new Date(t0).toISOString()}', '${new Date().toISOString()}', 'import.mjs', ${stats.entries}, 'importación inicial')`);
+  db.close();
+
+  log('\nResultado:');
+  for (const [k, v] of Object.entries(stats)) log(`  ${k.padEnd(10)} ${v}`);
+  log(`\nBase de datos: db/pikilon.db (${((await stat(DB_PATH)).size / 1024).toFixed(0)} KB)`);
+  log(`Listo en ${((Date.now() - t0) / 1000).toFixed(1)}s.`);
+}
+
+/** Busca un dump .sql/.sql.gz dejado en la raíz o en data/. */
+function findDump() {
+  for (const dir of [ROOT, join(ROOT, 'data')]) {
+    if (!existsSync(dir)) continue;
+    const hit = readdirSync(dir).find((f) => /\.sql$/i.test(f));
+    if (hit) return join(dir, hit);
+  }
+  return null;
+}
+
+main().catch((err) => {
+  console.error('\nERROR:', err.message);
+  process.exit(1);
+});

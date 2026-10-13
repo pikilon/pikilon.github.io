@@ -1,0 +1,536 @@
+{
+  "site": "https://pikilon.com",
+  "capturedAt": "2026-10-13T13:03:56.269Z",
+  "files": {
+    "archive/rest/posts.json": {
+      "bytes": 107650,
+      "sha256": "3ec041d37a8f2540c2e2287f404a03242803a20bcb6a8d46eaaa0ffe06c0dbd0"
+    },
+    "archive/rest/pages.json": {
+      "bytes": 5452,
+      "sha256": "b6f910bd5c5d775272370cc019f9d424bd0d1a060f06ec83c85eb1d44cebb3e2"
+    },
+    "archive/rest/media.json": {
+      "bytes": 80862,
+      "sha256": "58826c48107ce393b20a6267061197b16c80d358316dc1f4042f34ea24d68658"
+    },
+    "archive/rest/categories.json": {
+      "bytes": 3600,
+      "sha256": "eb3b61af250854a0d78276638f8e11829f516c9fa07f31057b0d15f30a1ca2d0"
+    },
+    "archive/rest/tags.json": {
+      "bytes": 13970,
+      "sha256": "5bdd0315838049767ed624761d0194fb1ab8341ea3690d125b13d38f4d6dc9ef"
+    },
+    "archive/rest/users.json": {
+      "bytes": 738,
+      "sha256": "ce4cf56e07d89669e47a1599447b8943a9405f03c05f952c78e99088ff787fbd"
+    },
+    "archive/rest/comments.json": {
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "archive/rest/site-root.json": {
+      "bytes": 185556,
+      "sha256": "0780de79335043caee8359fe7f31e52f3ec4af0ca6b0521a888050ddfdd61dd9"
+    },
+    "archive/media/wp-content/uploads/2015/06/pikilon_francisco_gutierrez.jpg": {
+      "bytes": 79884,
+      "sha256": "0ef8a5eb227819bb4e8a6690317c0bd955700e9922b9ec1eeea614700265d04f"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers-128x70.jpg": {
+      "bytes": 1816,
+      "sha256": "0e1283503cf5ffc2201ecdcb9b4058aaa585b083814accb681328b2a6b425945"
+    },
+    "archive/media/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-115x128.jpg": {
+      "bytes": 5937,
+      "sha256": "44a55140aa76fcbdecb35f7226a39a4613f743e575d04b36e39555b8977e3ddf"
+    },
+    "archive/media/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-231x256.jpg": {
+      "bytes": 18273,
+      "sha256": "4ca175c3b4400ebb6310ba08dfb482983e430f1c6776431c9e89f29665263925"
+    },
+    "archive/media/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-461x512.jpg": {
+      "bytes": 58449,
+      "sha256": "29f15a75a34c65de3cfbae1832c0981083e7fa59df47e0206c6a34d87b21d103"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers-1024x561.jpg": {
+      "bytes": 45053,
+      "sha256": "67e1e9af8344ccbcef31541e1f2d325ca88ab32b893f173b21ac85002888f75e"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers-256x140.jpg": {
+      "bytes": 5114,
+      "sha256": "83e9b1f6ed12b018816b76d24ff891eee78076082e4d8d199406c76adab97e14"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers-512x281.jpg": {
+      "bytes": 14836,
+      "sha256": "956b4d3d4110520b3bfac3121d99a4da2912774bb8e43dd4d545a7a040aa37a4"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers-768x421.jpg": {
+      "bytes": 29265,
+      "sha256": "21cfb894eb54979ceb5d8b921dfa4795d40aff20aec0a53d7ad93d803d6e7739"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_containers.jpg": {
+      "bytes": 71799,
+      "sha256": "1e210ddb930df96f4f52e248ad51305d2cede3a8e1a130d1b064a881ff8b754b"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_logo-128x128.png": {
+      "bytes": 4396,
+      "sha256": "9e73650453d3b25177b929a96d40e81a5f77ac12f8386a5e7ea5bf331f43b131"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_logo-256x256.png": {
+      "bytes": 10878,
+      "sha256": "6ce24f63c483f92fe7ad46352f9e310cd22019e7398799f8096af17533db29e0"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_logo.png": {
+      "bytes": 12284,
+      "sha256": "fe7c01de5e692de10305839675617224c1740dfed3fc8a0f7f5b0ca5f4c615b3"
+    },
+    "archive/media/wp-content/uploads/2015/12/codeanywhere_logo.webp": {
+      "bytes": 6378,
+      "sha256": "77263b798effa63a6020bf976fa17b23f774304ad1048f24f88b138205fcfcf8"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window-144x256.jpg": {
+      "bytes": 12978,
+      "sha256": "ab4ad31ed0cf67349ca5f339abf1f59e50248d161153c8f0a7f5b3d15e794ac5"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window-288x512.jpg": {
+      "bytes": 43889,
+      "sha256": "0d3a47a8fb635099722f309f1ead4bc98a1282fdb465ea8d9cf3da14e9875145"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window-432x768.jpg": {
+      "bytes": 85479,
+      "sha256": "497e483080fd39127ae3902648823bb11c076a88c4afc68b116fb79b3bcc812d"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window-72x128.jpg": {
+      "bytes": 4113,
+      "sha256": "14478f20c0659c4360a969e4b38f9ae0445c444bd5fa34dd2fe6d9cbdec6c914"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window-576x1024.jpg": {
+      "bytes": 131756,
+      "sha256": "fcb8b4b863525da5dba2e71bbe3ff3daca2a6a3e32fcbc2d2af71bca5907d8a7"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone-144x256.jpg": {
+      "bytes": 14415,
+      "sha256": "6b9587613af08de063b262db7140b3b6be3497ff66ba54263c3028a8c756810e"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone-288x512.jpg": {
+      "bytes": 44901,
+      "sha256": "c49d562255cfecb2c5f6627352ab2d9fd2360892d36bcb96050c0b99ddfd2121"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone-72x128.jpg": {
+      "bytes": 4501,
+      "sha256": "c1aede8471b7d74542100a23103b8d49d1d1a4c79591bed1da37b61752dc2fa9"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone-432x768.jpg": {
+      "bytes": 82425,
+      "sha256": "be22d2772c6e1135af8abce9849a3bcd9b0f3f12e953c1cd2e66ab148a47e622"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone-576x1024.jpg": {
+      "bytes": 124635,
+      "sha256": "e0fd8acd59796fc89f044a8107cc910e164f8c09a8456443baa10b0faa6d7345"
+    },
+    "archive/media/wp-content/uploads/2015/12/link_new_window.jpg": {
+      "bytes": 269733,
+      "sha256": "fe8c34fb9e90614d2209b711b4c3d170d2c683729b668c7ac287e241c4c8c81b"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker-1024x441.jpg": {
+      "bytes": 50275,
+      "sha256": "0574901d6b5c45897e1c43da23454edf249dfb2ba636b4a65bde3c0731584852"
+    },
+    "archive/media/wp-content/uploads/2015/12/modal-on-phone.jpg": {
+      "bytes": 248648,
+      "sha256": "9a855caeef30575c40ca1f68ed91cc631c1a2d2f96156e53f06999918be1e234"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker-256x110.jpg": {
+      "bytes": 5994,
+      "sha256": "1c5ddae9c915b1d4280553e0d3e7bf24b8d5f88b8d540280dc7795b0306572f9"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker-128x55.jpg": {
+      "bytes": 2172,
+      "sha256": "7bd22c51ac77a662b1675f5e85751167849b9db8ea994e48bd9dd94d3fcc21e9"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker-512x221.jpg": {
+      "bytes": 17910,
+      "sha256": "7de59f9751d367c2ba2328271f0e00754aabbb9ca6a65c979e2faa9cb29e8622"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker-768x331.jpg": {
+      "bytes": 33384,
+      "sha256": "4c7ea84a6516014e3617176ee3432a65249f73ad95c9a21d4cfa9774d73a2e46"
+    },
+    "archive/media/wp-content/uploads/2015/12/new-yorker.jpg": {
+      "bytes": 58200,
+      "sha256": "73c96a6c6878d6676338792d93bca6228846847799227d8d3b41f1b6b1c58f32"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images-128x74.jpg": {
+      "bytes": 2664,
+      "sha256": "bd894cd8fa62cacada3fdc30b69612b362e723520194f3b7181271793eb799a6"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images-256x147.jpg": {
+      "bytes": 7360,
+      "sha256": "e55338b7b5bfc6a5a6685142fa0be4cad50a9b28dc1e67102c6ba03131f34cad"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images-1024x588.jpg": {
+      "bytes": 58973,
+      "sha256": "c052188ac8b1ded33f298489d58d2a1d8ae378af680ae7de71a64dc4bfb71794"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images-512x294.jpg": {
+      "bytes": 20768,
+      "sha256": "e1b6f9b85a0f19a16bd1837407edb3ae409261b09e41cdf5eb7ca4840d20b165"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images-768x441.jpg": {
+      "bytes": 37453,
+      "sha256": "a7189e1e658046eb713a308f3f11492dad7e0646718d3387016d62fceb9f0190"
+    },
+    "archive/media/wp-content/uploads/2015/12/no-responsive-images.jpg": {
+      "bytes": 61012,
+      "sha256": "105361a9dfe801471a12a076631e27698ae90ea66a7b7d72678dd8ee9e89949b"
+    },
+    "archive/media/wp-content/uploads/2015/12/webp1.webp": {
+      "bytes": 11344,
+      "sha256": "d88e1b44622883ee0e64b19f829f3e8e1afe16cb575f27f38ab8fe28db2216e8"
+    },
+    "archive/media/wp-content/uploads/2015/12/webp1-128x64.png": {
+      "bytes": 3992,
+      "sha256": "f6eb03a9ea85f888694c55f9bd8dcd040b4d87709f828589332530a7980fab0f"
+    },
+    "archive/media/wp-content/uploads/2015/12/webp1-256x128.png": {
+      "bytes": 9214,
+      "sha256": "baeb64fa1eee5ebd7d3008095d80c1d59031d53eddab509bc115539bd9b890a5"
+    },
+    "archive/media/wp-content/uploads/2015/12/webp1.png": {
+      "bytes": 19531,
+      "sha256": "4e969700a8b51503c45e1cf7015d9fef011530c208ecf84edb5727e13c73c71b"
+    },
+    "archive/media/wp-content/uploads/2016/02/pikilon-cuadrado-128x128.png": {
+      "bytes": 4358,
+      "sha256": "fc64e5a90e343bedb78219c9ceb1c4831cd84275f7aeb29106585c409bfffab9"
+    },
+    "archive/media/wp-content/uploads/2016/02/pikilon-cuadrado-256x256.png": {
+      "bytes": 9029,
+      "sha256": "24543cb58a2f51cf4004ec5610e6ffad291fa774064365d7dffb211efedb8ab8"
+    },
+    "archive/media/wp-content/uploads/2017/06/REM-256x256.jpg": {
+      "bytes": 17195,
+      "sha256": "0e1ac18560ef543edacc19396c1a4d2e0a20cbd313b43966eeda1e930ebd6d91"
+    },
+    "archive/media/wp-content/uploads/2017/06/REM-128x128.jpg": {
+      "bytes": 5750,
+      "sha256": "c42277f5555a5efa9e7bdc0ef8d60a79e01c983a02c46ea956875f2c296ab0f9"
+    },
+    "archive/media/wp-content/uploads/2017/06/REM-512x512.jpg": {
+      "bytes": 51200,
+      "sha256": "b3bcc07b85380facf3e9daef37905d7bcd7ffc2928ae4a42b3822b5b9c786c2a"
+    },
+    "archive/media/wp-content/uploads/2016/02/pikilon-cuadrado.png": {
+      "bytes": 12806,
+      "sha256": "4d743233e8b86b41b13fa91715da891632db908267d3806367c9884c3a18aec4"
+    },
+    "archive/media/wp-content/uploads/2017/06/REM-768x768.jpg": {
+      "bytes": 99413,
+      "sha256": "1cae80dcd42cb2b3a72195f6631aeb870e48170f1ac62af20ccd0c3523ac7471"
+    },
+    "archive/media/wp-content/uploads/2017/06/REM.jpg": {
+      "bytes": 197183,
+      "sha256": "2b4a00c729174625a358c641c213e1e58a62f02f0a992eea24c831d4440fc950"
+    },
+    "archive/media/wp-content/uploads/2019/01/platform-wars-128x83.png": {
+      "bytes": 8507,
+      "sha256": "c77189aa5ad42cca605d8f1ae7be02b4c97c1246cba9fc3e0074201a244b4ddb"
+    },
+    "archive/media/wp-content/uploads/2019/01/platform-wars-256x167.png": {
+      "bytes": 35318,
+      "sha256": "70d4b10788d1498657c737d1abd63a066010b4bc6947b3309a0fb832adcb36ae"
+    },
+    "archive/media/wp-content/uploads/2019/01/platform-wars-512x334.png": {
+      "bytes": 145264,
+      "sha256": "92bcb842e9fb10df31a9f1a072775c5f94603a80268ff5ea8078168d7ccb651b"
+    },
+    "archive/media/wp-content/uploads/2019/02/01-create-bot-119x128.png": {
+      "bytes": 10355,
+      "sha256": "d33c93226faf5a323c45973662db6206c8e20cce3e3e5c14c6ab73228f9cb813"
+    },
+    "archive/media/wp-content/uploads/2019/01/platform-wars.png": {
+      "bytes": 160587,
+      "sha256": "b7a9dfef1087bcf0c44aed4c469152725f9b70d0e67093519370c448efe5d431"
+    },
+    "archive/media/wp-content/uploads/2019/02/01-create-bot-238x256.png": {
+      "bytes": 29527,
+      "sha256": "5e1f7bf392f3a5cf910eab571b71d7e2869213d475065272bdb4297fc739481a"
+    },
+    "archive/media/wp-content/uploads/2019/02/01-create-bot-476x512.png": {
+      "bytes": 86716,
+      "sha256": "bc943ea6a827a574b2d9e0aac2aeb4186adc5bf1556031c7767de5d11cdd1093"
+    },
+    "archive/media/wp-content/uploads/2019/02/01-create-bot-714x768.png": {
+      "bytes": 155110,
+      "sha256": "69b091f9ee8735d43de521c02f0c5ad764c271ca249b45c6166748a9cb5334d6"
+    },
+    "archive/media/wp-content/uploads/2019/02/01-create-bot.png": {
+      "bytes": 119017,
+      "sha256": "37d0ca32735e24ee22271239d5534739fb2114c7b639620f11082aa720c7cb39"
+    },
+    "archive/media/wp-content/uploads/2019/02/02-create-code-128x98.png": {
+      "bytes": 9816,
+      "sha256": "0d4b23a26ccc354549ab06039bd17f2d4b1566427e07c2ed65bc0149d758c5c9"
+    },
+    "archive/media/wp-content/uploads/2019/02/02-create-code-256x197.png": {
+      "bytes": 26571,
+      "sha256": "1e0852260b859b25cb1dd715c3e3c0968997df6caa193dff63671deb571b506e"
+    },
+    "archive/media/wp-content/uploads/2019/02/02-create-code-512x393.png": {
+      "bytes": 79194,
+      "sha256": "20dce11cc64edda8b38d18ee14dd35a8c7fcba4c4c1d626b81c1c9805e054359"
+    },
+    "archive/media/wp-content/uploads/2019/02/02-create-code-768x590.png": {
+      "bytes": 142496,
+      "sha256": "e95985605d348d125e091ccbe741af2f26ac5f800e477416949fb11c244e6ca9"
+    },
+    "archive/media/wp-content/uploads/2019/02/02-create-code.png": {
+      "bytes": 66510,
+      "sha256": "faeb300fffd6a549a2b0702a661925790266c981777ecd7057ed40611d437067"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase-1024x858.png": {
+      "bytes": 213196,
+      "sha256": "8052b84db77a3f4ebf62fba05d86421345c85b59dda9345f6247bfe633823f38"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase-128x107.png": {
+      "bytes": 9714,
+      "sha256": "f767a1044276fd9d59043c335405e00da4702b579eb4da3347e3685fb5b06dec"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase-256x215.png": {
+      "bytes": 26922,
+      "sha256": "3afa84e1eee9ed8dd37a77d3a3d81c0f31c5b8d0326c163fd62984fb44df4c51"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase-512x429.png": {
+      "bytes": 78885,
+      "sha256": "0b36f4a3293e768594f1a9bbf4823c9b4c63a5b97d40c0a5268b3f1ed00dea6d"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase-768x644.png": {
+      "bytes": 142367,
+      "sha256": "02b1cdb814eae495b320be6547eb8d6329738789aef48f5498f950c7df52cacb"
+    },
+    "archive/media/wp-content/uploads/2019/02/03-create-firebase.png": {
+      "bytes": 171960,
+      "sha256": "7f1b0675a7c26a3bdfbfccb1bbc0eaf9387428388f1db3985d837c102764ee66"
+    },
+    "archive/media/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-128x91.png": {
+      "bytes": 9123,
+      "sha256": "df3613c40ea7536d89047c5a805e48b05f48186ed4ee9681914d872eed832d52"
+    },
+    "archive/media/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-256x182.png": {
+      "bytes": 26603,
+      "sha256": "34c24c1c96118ad06d891ca8eda897adbb94f0ee404d8673d032e096c5e8a877"
+    },
+    "archive/media/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-512x363.png": {
+      "bytes": 75518,
+      "sha256": "5c41896b6a4bd76e330ba2079af5ba6c478279d0880d6469515a85110ba60546"
+    },
+    "archive/media/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847-768x545.png": {
+      "bytes": 127759,
+      "sha256": "24219ac1365adcb1ef374f089d3be97efbff77fc8dfecfb5688cf624fadfb8ba"
+    },
+    "archive/media/wp-content/uploads/2019/02/04-deploy-cloud-function-e1552503772847.png": {
+      "bytes": 105958,
+      "sha256": "3fd889e4a934d6b841904ad1141a6debbd3a57089a5733d40993b9ab5a182d95"
+    },
+    "archive/media/wp-content/uploads/2019/02/05-binded-128x64.png": {
+      "bytes": 6316,
+      "sha256": "af4c12830dd03ddf095e8de139cbdc281a5227468b83e52cf233ba4f1c405235"
+    },
+    "archive/media/wp-content/uploads/2019/02/05-binded-256x128.png": {
+      "bytes": 17347,
+      "sha256": "d743e1d7ba2db83e043cb146ffba2663b71add8776cc6f370929ff4c786d1d10"
+    },
+    "archive/media/wp-content/uploads/2019/02/05-binded-512x255.png": {
+      "bytes": 47838,
+      "sha256": "97746624b017b688751da75ebb43285a957948d7e795c7ab89acb57afc9be152"
+    },
+    "archive/media/wp-content/uploads/2019/02/05-binded-768x383.png": {
+      "bytes": 77860,
+      "sha256": "0062b5ead0dc069d4957f055527b3b12fed5b6c741b206c7e739df249e0e4f44"
+    },
+    "archive/media/wp-content/uploads/2019/02/06-result-128x109.png": {
+      "bytes": 5948,
+      "sha256": "ba71c99717e526c8e864f36e253ec5be436067d700c9c3df865c2ccdf9c14137"
+    },
+    "archive/media/wp-content/uploads/2019/02/05-binded.png": {
+      "bytes": 32603,
+      "sha256": "b8abddcc2453a364edb3ab57be6347b7e3422fd97012acfb483409865b8aed15"
+    },
+    "archive/media/wp-content/uploads/2019/02/06-result-256x219.png": {
+      "bytes": 17158,
+      "sha256": "cc9374c32c1332f889edaf0fc0adca05abd2b37c9f6ddd0b4ab9fccd9be46723"
+    },
+    "archive/media/wp-content/uploads/2019/02/06-result-512x437.png": {
+      "bytes": 47327,
+      "sha256": "5fd3d5806ff934450d5bb373aaea283c01cb7db58699556a541f09ef3b8b6620"
+    },
+    "archive/media/wp-content/uploads/2019/02/06-result.png": {
+      "bytes": 50062,
+      "sha256": "f4da9b7f7aa5690558306b0394e7ac3f4aafeb4e3e4c0b15cf05407123c6b2df"
+    },
+    "archive/media/wp-content/uploads/2019/02/image-1024x858.png": {
+      "bytes": 213196,
+      "sha256": "8052b84db77a3f4ebf62fba05d86421345c85b59dda9345f6247bfe633823f38"
+    },
+    "archive/media/wp-content/uploads/2019/02/image-128x107.png": {
+      "bytes": 9714,
+      "sha256": "f767a1044276fd9d59043c335405e00da4702b579eb4da3347e3685fb5b06dec"
+    },
+    "archive/media/wp-content/uploads/2019/02/image-256x215.png": {
+      "bytes": 26922,
+      "sha256": "3afa84e1eee9ed8dd37a77d3a3d81c0f31c5b8d0326c163fd62984fb44df4c51"
+    },
+    "archive/media/wp-content/uploads/2019/02/image-512x429.png": {
+      "bytes": 78885,
+      "sha256": "0b36f4a3293e768594f1a9bbf4823c9b4c63a5b97d40c0a5268b3f1ed00dea6d"
+    },
+    "archive/media/wp-content/uploads/2019/02/image-768x644.png": {
+      "bytes": 142367,
+      "sha256": "02b1cdb814eae495b320be6547eb8d6329738789aef48f5498f950c7df52cacb"
+    },
+    "archive/media/wp-content/uploads/2019/02/telegram_bot-100x100.png": {
+      "bytes": 2815,
+      "sha256": "fe615d246d5be8c490d3ccf699d51b3144265f019adf872a74b31f5976c923f3"
+    },
+    "archive/media/wp-content/uploads/2019/02/image.png": {
+      "bytes": 171960,
+      "sha256": "7f1b0675a7c26a3bdfbfccb1bbc0eaf9387428388f1db3985d837c102764ee66"
+    },
+    "archive/media/wp-content/uploads/2019/02/telegram_bot-512x249.png": {
+      "bytes": 28188,
+      "sha256": "56f66d09231242b20d02a8f580434e262accbbe75bea3d088800498a9c71087a"
+    },
+    "archive/media/wp-content/uploads/2019/02/telegram_bot.png": {
+      "bytes": 29465,
+      "sha256": "176acb681e94e81d46c32959e6d7643f10697a937aa2b1533f20d9ada5473257"
+    },
+    "archive/media/wp-content/uploads/2019/02/telegram_bot-256x125.png": {
+      "bytes": 10240,
+      "sha256": "a3cd29025a8b04c287a0cfd80529e7953dad0fa6d80ff4c04c64f0e00f359fdd"
+    },
+    "archive/html/wp-sitemap.xml": {
+      "bytes": 603,
+      "sha256": "c45e5c93ce86a31804f78c0ffa5b33eda94cd59ce4d093aae2b2719cfab6ed6c"
+    },
+    "archive/html/index.html": {
+      "bytes": 70027,
+      "sha256": "074c9674465d4ff7273b815c177eaa41ce96e14fd7ccc38a444422229294d38f"
+    },
+    "archive/html/feed/index.xml": {
+      "bytes": 42336,
+      "sha256": "6fae4645cd934894828f0b911bea39d162f4ecfa84269db94fc2013319273a56"
+    },
+    "archive/html/imho/browser-wars-ii-the-ios-betrayal/index.html": {
+      "bytes": 82519,
+      "sha256": "dc3e5949e030c9bddbb7efddeb621a53aa01950a3300f4f0558e758d51d8dd3e"
+    },
+    "archive/html/code/serverless-telegram-bot-using-firebase-in-5-minutes/index.html": {
+      "bytes": 81512,
+      "sha256": "74ec02ac0a83ebd410f4ee75318b89e37a4d08cf72c1330a879d6b402d001100"
+    },
+    "archive/html/code/rem-em-love-story/index.html": {
+      "bytes": 75538,
+      "sha256": "cd3072dc4789d8ffc7ac41acaf8b97580f5092c0a6dd8bdf6786b9029ae4425b"
+    },
+    "archive/html/code/better-bootstrap-grid/index.html": {
+      "bytes": 73637,
+      "sha256": "50700b12d562ed551d84d40402a779ae72e463580770a8562037ff7174adc7b5"
+    },
+    "archive/html/cat/imho/index.html": {
+      "bytes": 91838,
+      "sha256": "bed325b8126fcacf1584cef41ad6f1bab9476a37b30c8c5e52eff3798b598560"
+    },
+    "archive/html/imho/no-more-modals/index.html": {
+      "bytes": 76293,
+      "sha256": "c4cfab6c5b668d755e1ca299665709e41402e6c18c249cbc3f60b7940a842cf6"
+    },
+    "archive/html/imho/codeanywhere-literally-anywhere/index.html": {
+      "bytes": 75978,
+      "sha256": "11482b9f2ce682ad3bf40205693d512fe0dd9042b824e72cf4b5dcee46ca3c6b"
+    },
+    "archive/html/imho/firefox-and-webp/index.html": {
+      "bytes": 74324,
+      "sha256": "cb38155ea172a7646537fb773ca2c48bb6dffd3be5e6983d8b96f6df89822599"
+    },
+    "archive/html/code/your-first-wordpress-shortcode/index.html": {
+      "bytes": 72730,
+      "sha256": "73c393f400628c2cf7ae3f99ccfdb10099fd0c82925d3f9916eec32772ff948c"
+    },
+    "archive/html/code/implement-lazy-responsive-images-in-your-wordpress/index.html": {
+      "bytes": 75672,
+      "sha256": "bbd4e474d1afa460131aff77a40a6a4ba76d0fbed4184eeb91ccdb6ec5ac777b"
+    },
+    "archive/html/cat/code/index.html": {
+      "bytes": 91428,
+      "sha256": "ed24072add871d0b04d82c8b1d209affab5fc1c12e0a016b1e45c74d017d76f3"
+    },
+    "archive/html/cat/works/index.html": {
+      "bytes": 70296,
+      "sha256": "ed58d431fc9ba497734df2e6d6526d4303cb398750154f70220de44f397c59a0"
+    },
+    "archive/html/tag/php/index.html": {
+      "bytes": 79018,
+      "sha256": "16cc902e8e0b64f75bbfb20cf4dd2ab3a3c0fbeee1ba73c4a0de42cf9afb62c7"
+    },
+    "archive/html/tag/wp/index.html": {
+      "bytes": 74611,
+      "sha256": "cf70a09623c837d1d4066f40a8c33f5ceed2ed09122e23dc97620892839f27ff"
+    },
+    "archive/html/tag/js/index.html": {
+      "bytes": 73665,
+      "sha256": "a8cca399f1be1329f9c96e5d9926f2a56dfcb5aa4ccd7d4f6af0b5c7b5a27096"
+    },
+    "archive/html/tag/img/index.html": {
+      "bytes": 76268,
+      "sha256": "00587d00d38400114686383e2731800122906db418cbfc38c365190b687d511b"
+    },
+    "archive/html/tag/css/index.html": {
+      "bytes": 75297,
+      "sha256": "b56976228d9422b2b677fa6959513d3a623d981c16906a64b927427de50a96f1"
+    },
+    "archive/html/tag/html/index.html": {
+      "bytes": 90693,
+      "sha256": "57b550ff8b66104957d2980dc4c8a32feeef612b20e2009b5dd8516831b78beb"
+    },
+    "archive/html/tag/bem/index.html": {
+      "bytes": 73344,
+      "sha256": "0447bf7a4c987c9f5133a6582eefded3c41bb55c7d174825200ec1ac97a3d3cd"
+    },
+    "archive/html/tag/react/index.html": {
+      "bytes": 80173,
+      "sha256": "2a09b0930b1c19908f3e729b69159898a6dfc0ec88a36e089ddb54a12670648c"
+    },
+    "archive/html/tag/native/index.html": {
+      "bytes": 80178,
+      "sha256": "94eee19d59bb43d48eefa5644dfa59593dfa893e1655c37779a9e901b07b695f"
+    },
+    "archive/html/tag/flutter/index.html": {
+      "bytes": 80183,
+      "sha256": "36cb5733710ab68ad732d916f63f06064d7b6447afd11a8afc2eab33ca2d8175"
+    },
+    "archive/html/author/francisco/index.html": {
+      "bytes": 113437,
+      "sha256": "6eed36e8a2623ca4d28394725526ecb549eb3a2b9e3d919c1a89e74948eef82f"
+    }
+  },
+  "failures": [
+    {
+      "label": "rest",
+      "item": "menus",
+      "error": "https://pikilon.com/wp-json/wp/v2/menus?per_page=100&page=1 -> HTTP 401"
+    },
+    {
+      "label": "rest",
+      "item": "menu-items",
+      "error": "https://pikilon.com/wp-json/wp/v2/menu-items?per_page=100&page=1 -> HTTP 401"
+    }
+  ],
+  "summary": {
+    "files": 128,
+    "bytes": 7657647,
+    "failures": 2,
+    "elapsedSeconds": 8
+  }
+}
