@@ -128,8 +128,76 @@ function checkDatabase() {
   `).all();
   for (const t of orphanTerms) warn(`término sin entradas: ${t.slug}`);
 
+  const cvSummary = checkCv(db);
+
   db.close();
-  return { entries, media, variants };
+  return { entries, media, variants, cv: cvSummary };
+}
+
+/**
+ * Comprueba las tablas del CV.
+ *
+ * El CV no viene de WordPress, así que no pasa por la validación del archivo:
+ * es contenido escrito a mano y es donde más fácil es colar una fecha mal
+ * formateada o un enlace roto sin que nadie lo note.
+ */
+function checkCv(db) {
+  const experience = db.prepare('SELECT * FROM experience').all();
+  const education = db.prepare('SELECT * FROM education').all();
+  const skills = db.prepare('SELECT * FROM skills').all();
+  const projects = db.prepare('SELECT * FROM projects').all();
+  const site = db.prepare('SELECT * FROM site WHERE id = 1').get();
+
+  // La portada es el CV: sin nombre no hay página.
+  if (!site?.author_name?.trim()) fail('CV: site.author_name está vacío');
+
+  for (const e of experience) {
+    const where = `CV/experiencia ${e.id} (${e.role || '?'})`;
+    if (!e.role?.trim()) fail(`${where}: sin puesto`);
+    if (!e.company?.trim()) warn(`${where}: sin empresa`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(e.started_at || '')) {
+      fail(`${where}: fecha de inicio inválida (${e.started_at}); se espera YYYY-MM-DD`);
+    }
+    if (e.ended_at && !/^\d{4}-\d{2}-\d{2}$/.test(e.ended_at)) {
+      fail(`${where}: fecha de fin inválida (${e.ended_at})`);
+    }
+    if (e.ended_at && e.ended_at < e.started_at) {
+      fail(`${where}: termina antes de empezar (${e.started_at} > ${e.ended_at})`);
+    }
+    if (e.url && !/^https?:\/\//.test(e.url)) warn(`${where}: URL sin esquema (${e.url})`);
+  }
+
+  for (const e of education) {
+    const where = `CV/formación ${e.id} (${e.title || '?'})`;
+    if (!e.title?.trim()) fail(`${where}: sin titulación`);
+    if (!e.institution?.trim()) warn(`${where}: sin institución`);
+    for (const [field, value] of [['inicio', e.started_at], ['fin', e.ended_at]]) {
+      if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        fail(`${where}: fecha de ${field} inválida (${value})`);
+      }
+    }
+  }
+
+  for (const s of skills) {
+    if (!s.area?.trim()) fail(`CV/tecnología ${s.id}: sin área`);
+    if (!s.name?.trim()) fail(`CV/tecnología ${s.id}: sin nombre`);
+    if (s.level != null && (s.level < 1 || s.level > 5)) {
+      warn(`CV/tecnología ${s.id} (${s.name}): nivel fuera de 1-5`);
+    }
+  }
+
+  const seenSlugs = new Set();
+  for (const p of projects) {
+    const where = `CV/proyecto ${p.id} (${p.name || '?'})`;
+    if (!p.name?.trim()) fail(`${where}: sin nombre`);
+    if (p.slug && seenSlugs.has(p.slug)) fail(`${where}: slug duplicado ${p.slug}`);
+    seenSlugs.add(p.slug);
+    for (const [label, url] of [['repo', p.url], ['demo', p.demo]]) {
+      if (url && !/^https?:\/\//.test(url)) warn(`${where}: ${label} sin esquema (${url})`);
+    }
+  }
+
+  return { experience: experience.length, education: education.length, skills: skills.length, projects: projects.length };
 }
 
 /* ------------------------------------------------------------------- sitio */
@@ -198,6 +266,9 @@ console.log('Auditando la migración…\n');
 const data = checkDatabase();
 if (data) {
   console.log(`  ${data.entries.length} entradas, ${data.media.length} medios, ${data.variants.length} variantes`);
+  if (data.cv) {
+    console.log(`  CV: ${data.cv.experience} puestos, ${data.cv.education} títulos, ${data.cv.skills} tecnologías, ${data.cv.projects} proyectos`);
+  }
 }
 if (CHECK_SITE) checkSite();
 

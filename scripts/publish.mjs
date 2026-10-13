@@ -34,6 +34,7 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const DB_PATH = join(ROOT, 'db', 'pikilon.db');
 export const SITE_DIR = join(ROOT, 'site');
+export const CV_DIR = join(SITE_DIR, 'cv');
 
 /* ---------------------------------------------------------------- frontmatter */
 
@@ -344,6 +345,12 @@ export function exportToSite() {
 
   let n = 0;
   for (const e of entries) {
+    // La portada no se exporta como entrada: se compone con el CV
+    // (`site/cv/curriculum.md`) y las tablas `experience`, `education`,
+    // `skills` y `projects`. Exportarla aquí crearía un segundo archivo
+    // compitiendo por el mismo slug.
+    if (e.slug === 'home') continue;
+
     const own = termsOf(e.id);
     const cat = own.find((t) => t.kind === 'category');
     const tags = own.filter((t) => t.kind === 'tag');
@@ -434,7 +441,13 @@ Y aquí el desarrollo.
   return file;
 }
 
-/** Recorre site/ y devuelve todos los .md ordenados. */
+/**
+ * Recorre `site/` y devuelve todos los .md que representan ENTRADAS.
+ *
+ * Se excluye `site/cv/`: el CV no es una entrada del blog ni una página
+ * normal, sino datos estructurados que gestiona `scripts/cv.mjs`. Si se
+ * incluyera aquí, competiría con la portada generada.
+ */
 export function findSourceFiles(dir = SITE_DIR) {
   const out = [];
   const walk = (d) => {
@@ -442,8 +455,10 @@ export function findSourceFiles(dir = SITE_DIR) {
     for (const name of readdirSync(d)) {
       if (name.startsWith('.')) continue;
       const p = join(d, name);
-      if (statSync(p).isDirectory()) walk(p);
-      else if (p.endsWith('.md')) out.push(p);
+      if (statSync(p).isDirectory()) {
+        if (resolve(p) === resolve(CV_DIR)) continue;
+        walk(p);
+      } else if (p.endsWith('.md')) out.push(p);
     }
   };
   walk(dir);

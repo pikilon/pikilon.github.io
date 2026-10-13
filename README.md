@@ -12,10 +12,10 @@ Aquí se publica el CV y lo que voy aprendiendo sobre desarrollo web.
 archive/     copia íntegra del WordPress original (HTML, JSON y 94 medios)
    |  node scripts/import.mjs
    v
-db/pikilon.db   base de datos SQLite simplificada (8 tablas)
+db/pikilon.db   base de datos SQLite simplificada (entradas, medios y CV)
    |  node scripts/site.mjs export
    v
-site/        contenido en Markdown con cabecera; ESTA es la fuente de verdad
+site/        contenido en Markdown; ESTA es la fuente de verdad
    |  node scripts/site.mjs publish
    v
 public/      sitio estático generado (HTML + assets) -> GitHub Pages
@@ -25,7 +25,68 @@ La regla es sencilla: **el contenido se escribe en `site/`, todo lo demás se
 genera.** La base de datos es un paso intermedio reproducible, y `archive/`
 es la copia de seguridad de lo que había antes.
 
-## Publicar algo
+Hay dos tipos de contenido, cada uno con su comando:
+
+| Qué | Dónde se edita | Comando |
+|---|---|---|
+| Artículos y páginas | `site/<categoría>/*.md` | `site.mjs publish` |
+| El CV (portada) | `site/cv/curriculum.md` | `cv.mjs sync` + `site.mjs build` |
+
+## El CV
+
+El CV **no es un párrafo de texto**: la experiencia, la formación, las
+tecnologías y los proyectos son datos estructurados, para poder reordenarlos,
+filtrarlos y reutilizarlos (por ejemplo, para generar un PDF más adelante).
+
+Viven en `site/cv/curriculum.md`, un archivo que mezcla prosa escrita a mano
+con secciones que se regeneran desde la base de datos:
+
+```markdown
+# Francisco G. Sarazá
+
+Aquí va tu presentación: este texto se conserva tal cual.
+
+<!-- cv:contact -->          <- a partir de aquí manda la base de datos
+<!-- cv:skills -->
+<!-- cv:experience -->
+<!-- cv:education -->
+<!-- cv:projects -->
+```
+
+Ciclo de trabajo:
+
+```bash
+node scripts/cv.mjs export    # base de datos -> archivo (para editarlo)
+# editar site/cv/curriculum.md
+node scripts/cv.mjs sync      # archivo -> base de datos
+node scripts/cv.mjs list      # comprobar lo que hay registrado
+node scripts/site.mjs build   # regenerar la portada
+```
+
+Las secciones sin datos **no se muestran**, así puedes ir rellenando el CV
+poco a poco sin que queden huecos vacíos en la web.
+
+Formato de cada bloque:
+
+```markdown
+### Puesto — Empresa          # el guion largo separa puesto y empresa
+
+- inicio: 2020-03            # YYYY-MM (obligatorio)
+- fin: 2023-06               # se omite si sigues ahí
+- ubicacion: Ciudad
+- web: https://…
+- stack: TypeScript, Vue
+
+Un párrafo de contexto sobre el puesto.
+
+- Un logro concreto y medible
+- Otro logro
+```
+
+Para formación y proyectos el formato es el mismo, cambiando `titulo —`
+institución y `repo:` / `demo:` respectivamente.
+
+## Publicar un artículo
 
 ```bash
 # 1. Crear el archivo con la cabecera lista
@@ -74,6 +135,9 @@ Los borradores (`status: draft`) no se publican y no generan página.
 | `node scripts/site.mjs check` | Audita integridad (base de datos y HTML) |
 | `node scripts/site.mjs publish` | `sync` + `check` + `build` |
 | `node scripts/site.mjs deploy [--dry-run]` | Publica en GitHub Pages |
+| `node scripts/cv.mjs export` | Vuelca el CV a `site/cv/curriculum.md` |
+| `node scripts/cv.mjs sync` | Importa el CV a la base de datos |
+| `node scripts/cv.mjs list` | Resumen del CV registrado |
 | `node scripts/import.mjs` | Reimporta el archivo de WordPress |
 | `node scripts/mirror-wp.mjs` | Vuelve a descargar el WordPress original |
 
@@ -90,7 +154,9 @@ ejecuta `node scripts/site.mjs sync --prune`.
 - no queden shortcodes ni entidades HTML sin resolver;
 - las fechas sean ISO-8601 UTC;
 - no haya enlaces ni recursos rotos en el HTML generado;
-- no se repitan slugs.
+- no se repitan slugs;
+- el CV tenga fechas coherentes (que un puesto no termine antes de empezar),
+  titulaciones con institución y enlaces con esquema válido.
 
 Si algo falla, `publish` **no** genera el sitio: primero hay que arreglarlo.
 

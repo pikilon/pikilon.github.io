@@ -101,6 +101,15 @@ function loadData() {
   `);
 
   const links = all('SELECT * FROM links WHERE visible = 1 ORDER BY position');
+
+  // Datos estructurados del CV. Se leen siempre, aunque estén vacíos: la
+  // plantilla decide si merece la pena mostrar cada sección.
+  const cv = {
+    experience: all('SELECT * FROM experience WHERE visible = 1 ORDER BY position, started_at DESC'),
+    education: all('SELECT * FROM education WHERE visible = 1 ORDER BY position, ended_at DESC'),
+    skills: all('SELECT * FROM skills WHERE visible = 1 ORDER BY position, area, name'),
+    projects: all('SELECT * FROM projects WHERE visible = 1 ORDER BY position, name'),
+  };
   db.close();
 
   // Los artículos se publican bajo su categoría principal, igual que en
@@ -127,7 +136,7 @@ function loadData() {
     };
   });
 
-  return { site, entries: withMeta, terms, links, media };
+  return { site, entries: withMeta, terms, links, media, cv };
 }
 
 /** Estimación de tiempo de lectura a 200 palabras por minuto. */
@@ -176,9 +185,8 @@ export function normalizeAssetUrls(html) {
 
 async function build() {
   const t0 = Date.now();
-  const { site, entries, terms, links } = loadData();
+  const { site, entries, terms, links, cv } = loadData();
   const posts = entries.filter((e) => e.kind === 'post');
-  const pagesOnly = entries.filter((e) => e.kind === 'page');
 
   console.log(`Generando ${entries.length} entradas + ${terms.length} términos en ${OUT.replace(ROOT + '/', '')}/\n`);
 
@@ -193,7 +201,9 @@ async function build() {
   const ctx = { site, links, entries, posts, terms };
 
   // ---- portada / CV -----------------------------------------------------
-  const home = pagesOnly.find((e) => e.slug === 'home') || pagesOnly[0];
+  // La portada no sale de una entrada: se compone con la presentación de la
+  // tabla `site` más las secciones estructuradas del CV. Así el CV es dato,
+  // no un párrafo enterrado en un Markdown.
   const recent = posts.slice(0, 6);
 
   await emit(
@@ -202,23 +212,12 @@ async function build() {
       site,
       title: site.title,
       description: site.description || site.tagline || '',
-      content: home
-        ? `${home.html}${postsSection(recent, site)}`
-        : postsSection(recent, site),
+      content: cvPage({ site, cv, links }) + postsSection(recent, site),
       url: '/',
       nav: 'home',
     }),
   );
   page('/', { priority: 1.0, changefreq: 'weekly', lastmod: latestDate(entries) });
-
-  // ---- artículo con la home, por si tiene slug propio --------------------
-  if (home && home.slug !== 'home') {
-    await emit(
-      `${home.slug}/index.html`,
-      layout({ site, title: home.title, description: home.summary || '', content: home.html, url: `/${home.slug}/`, nav: 'home' }),
-    );
-    page(`/${home.slug}/`, { priority: 0.8 });
-  }
 
   // ---- índice de artículos ----------------------------------------------
   await emit(
@@ -236,6 +235,14 @@ async function build() {
 
   // ---- cada entrada ------------------------------------------------------
   for (const e of entries) {
+    // La portada no es una entrada: se compone aparte. Si existiera una página
+    // con slug `home` (residuo del WordPress), se convierte en redirección a
+    // `/` en vez de en una página duplicada compitiendo en los buscadores.
+    if (e.kind === 'page' && e.slug === 'home') {
+      await emit(`${e.slug}/index.html`, redirectPage({ from: `/${e.slug}/`, to: '/', site }));
+      continue;
+    }
+
     const related = posts
       .filter((p) => p.id !== e.id && p.primaryCategory?.slug && p.primaryCategory.slug === e.primaryCategory?.slug)
       .slice(0, 3);
@@ -381,6 +388,189 @@ function redirectPage({ from, to, site }) {
 </html>
 `;
   return html;
+}
+
+/**
+ * Portada: el CV.
+ *
+ * Se compone con la presentación (`site.bio`, en Markdown) y las secciones
+ * estructuradas. Cada sección se omite si no tiene datos, así el CV se puede
+ * ir rellenando poco a poco sin que queden huecos vacíos.
+ */
+function cvPage({ site, cv, links }) {
+  const out = [];
+
+  // --- cabecera: foto, nombre y presentación ---
+  const photo = site.author_photo ? assetHref(site.author_photo) : null;
+  out.push('<header class="cv__head">');
+  if (photo) {
+    out.push(
+      `<img class="portrait" src="${escapeAttr(photo)}" alt="${escapeAttr(site.author_name)}" ` +
+      `width="170" height="170" loading="eager" decoding="async">`,
+    );
+  }
+  out.push(`<h1>${escapeHtml(site.author_name)}</h1>`);
+  if (site.tagline) out.push(`<p class="cv__tagline">${escapeHtml(site.tagline)}</p>`);
+  out.push('</header>');
+
+  if (site.bio?.trim()) {
+    out.push(`<div class="prose cv__bio">${normalizeAssetUrls(renderMarkdown(site.bio))}</div>`);
+  }
+
+  // --- datos de contacto y perfiles ---
+  // El correo se añade delante: es lo primero que se busca en un CV.
+  const contacts = [
+    ...(site.author_email
+      ? [{ label: 'Email', icon: 'email', url: `mailto:${site.author_email}` }]
+      : []),
+    ...links.filter((l) => l.url),
+  ];
+  if (contacts.length) {
+    out.push('<nav class="cv__links" aria-label="Contacto y perfiles">');
+    for (const l of contacts) {
+      const label = socialLabel(l);
+      out.push(
+        `<a class="cv__link" href="${escapeAttr(l.url)}"` +
+        `${/^https?:/.test(l.url) ? ' rel="me noopener"' : ''}>${escapeHtml(label)}</a>`,
+      );
+    }
+    out.push('</nav>');
+  }
+
+  // --- experiencia ---
+  if (cv.experience.length) {
+    out.push('<section class="cv__section">');
+    out.push('<h2>Experiencia</h2>');
+    for (const e of cv.experience) {
+      const range = `${monthLabel(e.started_at)} — ${e.ended_at ? monthLabel(e.ended_at) : 'actualidad'}`;
+      out.push('<article class="cv__item">');
+      out.push('<div class="cv__itemHead">');
+      out.push(`<h3>${escapeHtml(e.role)}${e.company ? ` · <span class="cv__org">${escapeHtml(e.company)}</span>` : ''}</h3>`);
+      out.push(`<p class="cv__when">${escapeHtml(range)}${e.location ? ` · ${escapeHtml(e.location)}` : ''}</p>`);
+      out.push('</div>');
+      if (e.summary) out.push(`<p>${escapeHtml(e.summary)}</p>`);
+      const highlights = String(e.highlights || '').split('\n').filter(Boolean);
+      if (highlights.length) {
+        out.push(`<ul>${highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join('')}</ul>`);
+      }
+      if (e.stack) out.push(`<p class="cv__stack">${stackChips(e.stack)}</p>`);
+      out.push('</article>');
+    }
+    out.push('</section>');
+  }
+
+  // --- formación ---
+  if (cv.education.length) {
+    out.push('<section class="cv__section">');
+    out.push('<h2>Formación</h2>');
+    for (const e of cv.education) {
+      const when = [monthLabel(e.started_at), e.ended_at ? monthLabel(e.ended_at) : null]
+        .filter(Boolean)
+        .join(' — ');
+      out.push('<article class="cv__item">');
+      out.push('<div class="cv__itemHead">');
+      out.push(`<h3>${escapeHtml(e.title)}</h3>`);
+      out.push(
+        `<p class="cv__when">${escapeHtml(e.institution || '')}` +
+        `${when ? ` · ${escapeHtml(when)}` : ''}` +
+        `${e.grade ? ` · ${escapeHtml(e.grade)}` : ''}</p>`,
+      );
+      out.push('</div>');
+      if (e.summary) out.push(`<p>${escapeHtml(e.summary)}</p>`);
+      out.push('</article>');
+    }
+    out.push('</section>');
+  }
+
+  // --- tecnologías, agrupadas por área ---
+  if (cv.skills.length) {
+    const byArea = new Map();
+    for (const s of cv.skills) {
+      if (!byArea.has(s.area)) byArea.set(s.area, []);
+      byArea.get(s.area).push(s);
+    }
+    out.push('<section class="cv__section">');
+    out.push('<h2>Tecnologías</h2>');
+    out.push('<div class="cv__skills">');
+    for (const [area, items] of byArea) {
+      out.push('<div class="cv__skillArea">');
+      out.push(`<h3>${escapeHtml(area)}</h3>`);
+      out.push(`<p>${items.map((s) => `<span class="chip">${escapeHtml(s.name)}</span>`).join(' ')}</p>`);
+      out.push('</div>');
+    }
+    out.push('</div>');
+    out.push('</section>');
+  }
+
+  // --- proyectos ---
+  if (cv.projects.length) {
+    out.push('<section class="cv__section">');
+    out.push('<h2>Proyectos</h2>');
+    out.push('<div class="cards cards--projects">');
+    for (const p of cv.projects) {
+      const href = p.demo || p.url;
+      const inner = [
+        '<div class="card__body">',
+        `<h3 class="card__title">${escapeHtml(p.name)}</h3>`,
+        p.tagline ? `<p class="card__summary">${escapeHtml(p.tagline)}</p>` : '',
+        p.description ? `<p class="card__summary">${escapeHtml(p.description)}</p>` : '',
+        p.stack ? `<p class="cv__stack">${stackChips(p.stack)}</p>` : '',
+        p.demo ? `<p class="card__meta"><a href="${escapeAttr(p.demo)}">Ver en vivo</a></p>` : '',
+        '</div>',
+      ].filter(Boolean).join('');
+      out.push(
+        href
+          ? `<article class="card"><a class="card__link" href="${escapeAttr(href)}"${/^https?:/.test(href) ? ' rel="noopener"' : ''}>${inner}</a></article>`
+          : `<article class="card">${inner}</article>`,
+      );
+    }
+    out.push('</div>');
+    out.push('</section>');
+  }
+
+  return out.join('\n');
+}
+
+/**
+ * Nombre visible de un enlace de contacto.
+ * El `icon` de la base de datos es una clave estable en minúsculas, no un
+ * nombre para mostrar; aquí se traduce a algo presentable.
+ */
+function socialLabel(link) {
+  const KNOWN = {
+    github: 'GitHub', twitter: 'Twitter', x: 'X', facebook: 'Facebook',
+    linkedin: 'LinkedIn', codepen: 'CodePen', youtube: 'YouTube',
+    instagram: 'Instagram', mastodon: 'Mastodon', bluesky: 'Bluesky',
+    email: 'Email', mail: 'Email', web: 'Web', proyecto: 'Proyecto',
+    stackoverflow: 'Stack Overflow',
+  };
+  const key = String(link.icon || link.label || '').toLowerCase();
+  if (KNOWN[key]) return KNOWN[key];
+  // Si no lo conocemos, se usa la etiqueta tal cual o el dominio del enlace.
+  if (link.label && link.label !== key) return link.label;
+  try {
+    return new URL(link.url).hostname.replace(/^www\./, '');
+  } catch {
+    return link.label || key;
+  }
+}
+
+/** `2020-03-01` -> `mar 2020`. */
+function monthLabel(value) {  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/** `TypeScript, Vue` -> etiquetas. */
+function stackChips(stack) {
+  return String(stack)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => `<span class="chip chip--tag">${escapeHtml(s)}</span>`)
+    .join(' ');
 }
 
 /** Fecha más reciente de un conjunto de entradas, para `lastmod`. */

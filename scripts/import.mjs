@@ -26,6 +26,7 @@ import { fileURLToPath } from 'node:url';
 import { expandShortcodes, htmlToMarkdown, htmlToText, stripSizeSuffix } from './html-to-md.mjs';
 import { parseSqlDump } from './mysql-import.mjs';
 import { exportToSite } from './publish.mjs';
+import { exportCv, syncCv } from './cv.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ARCHIVE = join(ROOT, 'archive');
@@ -314,6 +315,81 @@ function iconFor(url = '') {
   return url.startsWith('mailto:') ? 'mail' : 'link';
 }
 
+/* ------------------------------------------------------------- migraciones */
+
+/**
+ * Añade las columnas que falten en una base de datos creada con un esquema
+ * anterior. `CREATE TABLE IF NOT EXISTS` no modifica tablas ya existentes,
+ * así que sin esto una base antigua se quedaría sin las columnas nuevas.
+ *
+ * Es idempotente: se puede ejecutar en cada importación sin efectos.
+ */
+function migrate(db) {
+  const columnsOf = (table) =>
+    db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+
+  const additions = [
+    ['site', 'bio', 'TEXT'],
+    ['site', 'location', 'TEXT'],
+  ];
+
+  const added = [];
+  for (const [table, column, type] of additions) {
+    const existing = columnsOf(table);
+    if (existing.length && !existing.includes(column)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+      added.push(`${table}.${column}`);
+    }
+  }
+  if (added.length) log(`  esquema migrado: +${added.join(', +')}`);
+}
+
+/** Tablas del CV cuya información NO procede de WordPress. */
+const CV_TABLES = ['experience', 'education', 'skills', 'projects'];
+
+/** Copia las tablas del CV antes de recrear la base de datos. */
+async function dumpCvTables() {
+  const db = new DatabaseSync(DB_PATH, { readOnly: true });
+  const backup = {};
+  try {
+    for (const t of CV_TABLES) backup[t] = db.prepare(`SELECT * FROM ${t}`).all();
+    const site = db.prepare('SELECT bio, location, author_email FROM site WHERE id = 1').get();
+    if (site) backup.__site = site;
+    const links = db.prepare("SELECT * FROM links WHERE kind IN ('social','contact')").all();
+    backup.__links = links;
+  } catch {
+    return null; // base de datos antigua sin estas tablas
+  } finally {
+    db.close();
+  }
+  return backup;
+}
+
+/** Reinserta las tablas del CV copiadas antes de recrear la base de datos. */
+function restoreCvTables(db, backup) {
+  let total = 0;
+  for (const [table, rows] of Object.entries(backup)) {
+    if (!CV_TABLES.includes(table) || !rows?.length) continue;
+    const cols = Object.keys(rows[0]);
+    const stmt = db.prepare(
+      `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`,
+    );
+    for (const row of rows) stmt.run(...cols.map((c) => row[c]));
+    total += rows.length;
+  }
+  if (backup.__site) {
+    db.prepare('UPDATE site SET bio = ?, location = ?, author_email = ? WHERE id = 1')
+      .run(backup.__site.bio, backup.__site.location, backup.__site.author_email);
+  }
+  if (backup.__links?.length) {
+    db.prepare("DELETE FROM links WHERE kind IN ('social','contact')").run();
+    const stmt = db.prepare('INSERT INTO links (kind, label, url, icon, position) VALUES (?, ?, ?, ?, ?)');
+    for (const l of backup.__links) stmt.run(l.kind, l.label, l.url, l.icon, l.position);
+  }
+  if (total) log(`  CV conservado: ${total} filas`);
+  return total;
+}
+
 /* ------------------------------------------------------------------ main */
 
 async function main() {
@@ -329,18 +405,25 @@ async function main() {
     throw new Error('No hay archive/rest/posts.json ni pages.json. Ejecuta antes: node scripts/mirror-wp.mjs');
   }
 
-  // 2. Base de datos limpia (el esquema se aplica siempre; es idempotente).
+  // 2. Base de datos. Por defecto se recrea desde cero (el archivo es la
+  //    fuente), pero las tablas del CV se conservan: no vienen de WordPress y
+  //    perderlas obligaría a reescribir el CV a mano.
   await mkdir(dirname(DB_PATH), { recursive: true });
+  const cvBackup = !KEEP && existsSync(DB_PATH) ? await dumpCvTables() : null;
   if (!KEEP && existsSync(DB_PATH)) {
     for (const suffix of ['', '-wal', '-shm']) await rm(DB_PATH + suffix, { force: true });
   }
   const db = new DatabaseSync(DB_PATH);
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec(await readFile(join(ROOT, 'db', 'schema.sql'), 'utf8'));
+  // El esquema se declara con CREATE TABLE IF NOT EXISTS, así que una base de
+  // datos anterior no recibe las columnas nuevas: hay que migrarla.
+  migrate(db);
 
   if (KEEP) {
     log('  modo --keep: no se borran datos existentes');
   }
+  const cvRestored = cvBackup ? restoreCvTables(db, cvBackup) : null;
 
   // 3. Medios (copia física + metadatos) para poder resolver las URLs.
   log('\n[1/4] Medios');
@@ -379,9 +462,30 @@ async function main() {
   }
 
   // 6. Volcar el resultado a site/, que pasa a ser la fuente editable.
+  //    Primero el CV (sus tablas no vienen de WordPress) y después las
+  //    entradas. El orden importa: cada sync reescribe sus propias tablas.
+  if (cvBackup === null || (cvRestored === 0 && cvBackup)) {
+    // El CV no existía o quedó vacío: si el archivo fuente sigue ahí, se
+    // reconstruye desde él. Así una base de datos recreada no pierde el CV.
+    try {
+      const counts = syncCv();
+      log(`\n[+] CV reconstruido desde site/cv/: ${counts.education} títulos, ${counts.skills} tecnologías, ${counts.projects} proyectos`);
+    } catch {
+      log('\n[+] Sin site/cv/curriculum.md todavía (el CV se creará al hacer cv.mjs export)');
+    }
+  } else if (cvRestored) {
+    log(`[+] CV conservado de la base de datos anterior (${cvRestored} filas)`);
+  }
+
   if (!args.includes('--no-export')) {
     const n = exportToSite();
     log(`\n[+] ${n} archivo(s) Markdown escritos en site/ — a partir de ahora se edita ahí.`);
+    try {
+      const cvFile = exportCv();
+      log(`[+] CV volcado a ${cvFile.file.replace(ROOT + '/', '')}`);
+    } catch (err) {
+      log(`[+] CV no volcado: ${err.message}`);
+    }
   }
 
   // 7. Informe.
