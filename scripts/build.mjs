@@ -420,6 +420,14 @@ function cvPage({ site, cv, links }) {
     out.push(`<div class="prose cv__bio">${normalizeAssetUrls(renderMarkdown(site.bio))}</div>`);
   }
 
+  // Botón de impresión: un CV acaba en papel o en PDF más veces de las que
+  // parece, y la hoja de estilos ya está preparada para ello. Sin JavaScript,
+  // el botón simplemente no se muestra (ver .cv__print).
+  out.push(
+    '<p class="cv__print"><button type="button" onclick="window.print()">' +
+    'Imprimir o guardar en PDF</button></p>',
+  );
+
   // --- datos de contacto y perfiles ---
   // El correo se añade delante: es lo primero que se busca en un CV.
   const contacts = [
