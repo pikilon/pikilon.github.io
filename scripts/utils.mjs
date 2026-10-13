@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 /**
  * utils.mjs — Utilidades compartidas por los scripts.
  *
@@ -50,4 +52,28 @@ export function toIsoUtc(date, fallbackTime = '12:00:00') {
   if (!m) return null;
   const t = (m[2] || fallbackTime).padEnd(8, ':00').slice(0, 8);
   return `${m[1]}T${t}Z`;
+}
+
+/**
+ * Slugs de página que gestiona el CV y que, por tanto, no deben tratarse como
+ * entradas: ni importarse desde WordPress ni exportarse a `site/`.
+ *
+ * Se leen del frontmatter de `site/cv/curriculum.md`, que es quien declara qué
+ * slug ocupa la portada (por defecto `home`). Vive aquí para que `import.mjs`
+ * y `publish.mjs` compartan una única definición.
+ *
+ * @param {string} cvFile  ruta absoluta al archivo del CV
+ * @returns {Set<string>}
+ */
+export function cvOwnedSlugs(cvFile) {
+  const fallback = new Set(['home']);
+  try {
+    const text = readFileSync(cvFile, 'utf8');
+    const m = text.match(/^---\n([\s\S]*?)\n---/);
+    if (!m) return fallback;
+    const slug = (m[1].match(/^\s*slug\s*:\s*(.+)$/m) || [])[1];
+    return new Set([slug ? slug.trim().replace(/^["']|["']$/g, '') : 'home']);
+  } catch {
+    return fallback;
+  }
 }

@@ -235,9 +235,9 @@ async function build() {
 
   // ---- cada entrada ------------------------------------------------------
   for (const e of entries) {
-    // La portada no es una entrada: se compone aparte. Si existiera una página
-    // con slug `home` (residuo del WordPress), se convierte en redirección a
-    // `/` en vez de en una página duplicada compitiendo en los buscadores.
+    // La portada la compone el CV, y `import.mjs` ya no trae la página `home`.
+    // Esta salvaguarda cubre bases de datos anteriores a ese cambio: antes que
+    // generar una página duplicada, se emite una redirección a `/`.
     if (e.kind === 'page' && e.slug === 'home') {
       await emit(`${e.slug}/index.html`, redirectPage({ from: `/${e.slug}/`, to: '/', site }));
       continue;
@@ -362,11 +362,14 @@ ${postsSection(own, site, { all: true })}`,
  */
 function legacyRedirects(terms, site) {
   const out = [];
+  // WordPress servía también /category/<slug>/ (con 301 a /cat/<slug>/).
   for (const t of terms) {
     if (t.kind === 'category' && t.entries > 0) out.push([`/category/${t.slug}/`, `/cat/${t.slug}/`]);
   }
   // El feed que servía WordPress en /feed/.
   out.push(['/feed/', '/feed.xml']);
+  // La antigua página de inicio tenía slug `home`; ahora la portada es `/`.
+  out.push(['/home/', '/']);
   return out;
 }
 

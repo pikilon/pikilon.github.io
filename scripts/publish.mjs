@@ -31,6 +31,8 @@ import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSy
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { cvOwnedSlugs } from './utils.mjs';
+
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const DB_PATH = join(ROOT, 'db', 'pikilon.db');
 export const SITE_DIR = join(ROOT, 'site');
@@ -334,6 +336,7 @@ function firstParagraph(body) {
  * @returns {number} número de archivos escritos
  */
 export function exportToSite() {
+  const cvSlugs = cvOwnedSlugs(join(CV_DIR, 'curriculum.md'));
   const db = new DatabaseSync(DB_PATH, { readOnly: true });
   const entries = db.prepare('SELECT * FROM entries ORDER BY kind, published_at').all();
 
@@ -345,11 +348,11 @@ export function exportToSite() {
 
   let n = 0;
   for (const e of entries) {
-    // La portada no se exporta como entrada: se compone con el CV
-    // (`site/cv/curriculum.md`) y las tablas `experience`, `education`,
+    // La portada no se exporta como entrada: la compone el CV
+    // (`site/cv/curriculum.md`) con las tablas `experience`, `education`,
     // `skills` y `projects`. Exportarla aquí crearía un segundo archivo
     // compitiendo por el mismo slug.
-    if (e.slug === 'home') continue;
+    if (cvSlugs.has(e.slug)) continue;
 
     const own = termsOf(e.id);
     const cat = own.find((t) => t.kind === 'category');

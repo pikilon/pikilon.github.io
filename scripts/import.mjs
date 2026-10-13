@@ -27,7 +27,7 @@ import { expandShortcodes, htmlToMarkdown, htmlToText, stripSizeSuffix } from '.
 import { extractUnpublished, extractWpOptions, parseSqlDump, summarizePosts } from './mysql-import.mjs';
 import { exportToSite } from './publish.mjs';
 import { exportCv, syncCv } from './cv.mjs';
-import { iconFor } from './utils.mjs';
+import { cvOwnedSlugs, iconFor } from './utils.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ARCHIVE = join(ROOT, 'archive');
@@ -197,7 +197,8 @@ function cleanSummary(html) {
 }
 
 /** Importa artículos y páginas a `entries` + `entry_terms`. */
-function importEntries(db, posts, pages, termByWpId, imageMap, idToPath) {  const insertEntry = db.prepare(`
+function importEntries(db, posts, pages, termByWpId, imageMap, idToPath, skipSlugs = new Set()) {
+  const insertEntry = db.prepare(`
     INSERT INTO entries
       (kind, slug, title, summary, body, body_format, published_at, updated_at,
        status, featured_id, lang, template, position, wp_id, wp_link, wp_modified)
@@ -207,12 +208,18 @@ function importEntries(db, posts, pages, termByWpId, imageMap, idToPath) {  cons
   const findMedia = db.prepare('SELECT id FROM media WHERE wp_id = ?');
 
   let count = 0;
+  let skippedPages = 0;
   const all = [
     ...posts.map((p) => ({ ...p, _kind: 'post' })),
     ...pages.map((p) => ({ ...p, _kind: 'page' })),
   ];
 
   for (const [i, item] of all.entries()) {
+    // Una página cuyo slug reclama el CV no se importa (ver `cvPageSlug`).
+    if (skipSlugs.has(item.slug)) {
+      skippedPages++;
+      continue;
+    }
     const raw = expandShortcodes(item.content?.rendered || '', idToPath);
     const body = htmlToMarkdown(raw, { imageMap });
 
@@ -252,7 +259,10 @@ function importEntries(db, posts, pages, termByWpId, imageMap, idToPath) {  cons
     }
     count++;
   }
-  log(`  entradas: ${count} (${posts.length} artículos, ${pages.length} páginas)`);
+  log(
+    `  entradas: ${count} (${posts.length} artículos, ${pages.length - skippedPages} páginas)` +
+    (skippedPages ? `, ${skippedPages} página(s) que gestiona el CV` : ''),
+  );
 }
 
 /**
@@ -520,7 +530,9 @@ async function main() {
   const termByWpId = importTerms(db, categories, tags);
 
   log('\n[3/4] Entradas');
-  importEntries(db, posts, pages, termByWpId, imageMap, idToPath);
+  // El CV compone la portada: su slug no se importa como entrada.
+  importEntries(db, posts, pages, termByWpId, imageMap, idToPath,
+    cvOwnedSlugs(join(ROOT, 'site', 'cv', 'curriculum.md')));
 
   log('\n[4/4] Identidad del sitio');
   await importSite(db, pages);
