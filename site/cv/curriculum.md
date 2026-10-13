@@ -22,8 +22,8 @@ Trabajo en proyectos freelance y mantengo varios proyectos de código abierto.
 
 - email: pikilon@gmail.com
 - github: https://github.com/pikilon
-- facebook: https://www.facebook.com/piki.g.saraza
 - twitter: https://twitter.com/nomaspatanes
+- facebook: https://www.facebook.com/piki.g.saraza
 
 <!-- cv:skills -->
 ## Tecnologías

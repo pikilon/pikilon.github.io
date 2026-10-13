@@ -19,3 +19,6 @@ db/pikilon.db-shm
 node_modules/
 .DS_Store
 *.log
+
+# Informe generado al leer un dump de MySQL.
+db/dump-summary.json

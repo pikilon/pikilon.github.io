@@ -28,6 +28,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseFrontmatter } from './publish.mjs';
+import { iconFor, slugify } from './utils.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const DB_PATH = join(ROOT, 'db', 'pikilon.db');
@@ -229,10 +230,6 @@ function parseBlocks(text, build) {
   return out;
 }
 
-const slugify = (t = '') =>
-  String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
-
 /* ------------------------------------------------------------------ escritura */
 
 /**
@@ -250,7 +247,7 @@ export function exportCv() {
   const education = all('SELECT * FROM education WHERE visible = 1 ORDER BY position, ended_at DESC');
   const skills = all('SELECT * FROM skills WHERE visible = 1 ORDER BY position, area, name');
   const projects = all('SELECT * FROM projects WHERE visible = 1 ORDER BY position, name');
-  const links = all('SELECT * FROM links WHERE visible = 1 ORDER BY position');
+  const links = all("SELECT * FROM links WHERE visible = 1 AND kind IN ('social','contact') ORDER BY position");
   const site = db.prepare('SELECT * FROM site WHERE id = 1').get();
   db.close();
 
@@ -348,10 +345,13 @@ function templateIntro(site) {
 function renderContact(site, links) {
   const rows = [];
   if (site?.author_email) rows.push(`- email: ${site.author_email}`);
+  // `links` trae ya los sociales y de contacto de la tabla, que `sync` acaba
+  // de reponer desde este mismo archivo: el ciclo es estable.
   for (const l of links) {
     // La clave (`icon`) es la que se vuelve a leer al sincronizar, así que
     // tiene que ser estable y en minúsculas; el nombre visible lo pone la web.
-    const key = l.kind === 'project' ? 'proyecto' : l.icon || 'web';
+    // Se deduce del dominio si la fila no trae icono.
+    const key = l.kind === 'project' ? 'proyecto' : l.icon || iconFor(l.url);
     rows.push(`- ${key}: ${l.url}`);
   }
   return rows.length ? rows.join('\n') : '_Sin datos de contacto todavía._';

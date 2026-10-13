@@ -309,22 +309,56 @@ export function extractWpOptions(dump, prefix = 'wp_') {
 }
 
 /**
- * Devuelve los borradores y entradas no públicas del dump, que la API REST
- * no entrega sin autenticación.
+ * Devuelve las entradas no públicas del dump: borradores, pendientes y
+ * programadas. Son justo las que la API REST no entrega sin autenticación,
+ * así que es la razón principal para importar el dump.
+ *
+ * @param {object} dump  resultado de `parseSqlDump`
+ * @param {string} [prefix]  prefijo de las tablas (`wp_` por defecto)
+ * @param {object} [opts]
+ * @param {boolean} [opts.includeTrash]  incluir la papelera (por defecto no)
  */
-export function extractUnpublished(dump, prefix = 'wp_') {
+export function extractUnpublished(dump, prefix = 'wp_', { includeTrash = false } = {}) {
   const table = dump.tables[`${prefix}posts`];
   if (!table) return [];
+  const excluded = ['publish', 'inherit', 'auto-draft', 'revision', ...(includeTrash ? [] : ['trash'])];
+
   return table.rows
     .filter((r) => r.post_type === 'post' || r.post_type === 'page')
-    .filter((r) => r.post_status && !['publish', 'inherit', 'auto-draft'].includes(r.post_status))
+    .filter((r) => r.post_status && !excluded.includes(r.post_status))
     .map((r) => ({
       id: r.ID,
       type: r.post_type,
       status: r.post_status,
       slug: r.post_name,
       title: r.post_title,
-      date: r.post_date_gmt,
+      // `post_date_gmt` puede no existir en dumps antiguos o venir a cero.
+      date: usableDate(r.post_date_gmt) || usableDate(r.post_date),
       content: r.post_content,
-    }));
+    }))
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+}
+
+/** Descarta las fechas centinela que usa MySQL (`0000-00-00 …`). */
+function usableDate(value) {
+  if (!value || typeof value !== 'string') return null;
+  if (/^0000-00-00/.test(value)) return null;
+  return value;
+}
+
+/**
+ * Cuenta lo que hay en el dump por tipo y estado.
+ * Sirve para comprobar de un vistazo que se ha leído el dump correcto antes
+ * de fiarse de él.
+ */
+export function summarizePosts(dump, prefix = 'wp_') {
+  const table = dump.tables[`${prefix}posts`];
+  if (!table) return null;
+  const byStatus = {};
+  const byType = {};
+  for (const r of table.rows) {
+    byStatus[r.post_status] = (byStatus[r.post_status] || 0) + 1;
+    byType[r.post_type] = (byType[r.post_type] || 0) + 1;
+  }
+  return { total: table.rows.length, byStatus, byType };
 }

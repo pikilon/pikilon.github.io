@@ -24,9 +24,10 @@ import { existsSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expandShortcodes, htmlToMarkdown, htmlToText, stripSizeSuffix } from './html-to-md.mjs';
-import { parseSqlDump } from './mysql-import.mjs';
+import { extractUnpublished, extractWpOptions, parseSqlDump, summarizePosts } from './mysql-import.mjs';
 import { exportToSite } from './publish.mjs';
 import { exportCv, syncCv } from './cv.mjs';
+import { iconFor } from './utils.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ARCHIVE = join(ROOT, 'archive');
@@ -288,31 +289,110 @@ async function importSite(db, pages) {
     links.push({ url, label });
   }
 
+  // Los perfiles sociales y de contacto NO se importan aquí: el autor de esta
+  // web los mantiene en `site/cv/curriculum.md`, que es la fuente de verdad y
+  // se aplica después. Importarlos desde la home de WordPress (que además
+  // apuntaba a Google+, cerrado en 2019) sólo crearía duplicados y datos
+  // obsoletos. Aquí únicamente se enlazan los proyectos detectados.
+  db.prepare("DELETE FROM links WHERE kind IN ('social', 'contact')").run();
+
   const insertLink = db.prepare('INSERT INTO links (kind, label, url, icon, position) VALUES (?, ?, ?, ?, ?)');
-  const seen = new Set();
   let pos = 0;
   for (const l of links) {
-    if (seen.has(l.url)) continue;
-    seen.add(l.url);
-    const kind = l.url.startsWith('mailto:') ? 'contact' : 'social';
-    insertLink.run(kind, l.label, l.url, iconFor(l.url), pos++);
+    if (!/github\.com\/pikilon/i.test(l.url)) continue;
+    insertLink.run('project', l.label, l.url, 'github', pos++);
   }
-  // Los enlaces a proyectos propios también cuentan como "project".
-  for (const l of links) {
-    if (/github\.com\/pikilon/i.test(l.url)) insertLink.run('project', l.label, l.url, 'github', pos++);
-  }
-  log(`  sitio: 1 fila, ${pos} enlaces`);
+  log(`  sitio: 1 fila, ${pos} enlace(s) de proyecto`);
 }
 
-/** Icono aproximado según el dominio del enlace. */
-function iconFor(url = '') {
-  const map = {
-    'facebook.com': 'facebook', 'twitter.com': 'twitter', 'x.com': 'twitter',
-    'plus.google.com': 'google', 'linkedin.com': 'linkedin', 'github.com': 'github',
-    'codepen.io': 'codepen', 'youtube.com': 'youtube', 'instagram.com': 'instagram',
-  };
-  for (const [host, icon] of Object.entries(map)) if (url.includes(host)) return icon;
-  return url.startsWith('mailto:') ? 'mail' : 'link';
+/**
+ * Incorpora lo que sólo está en el dump de MySQL.
+ *
+ * La API REST pública devuelve únicamente lo publicado. El dump trae además
+ * los borradores y lo programado, los ajustes del sitio y los menús. Aquí se
+ * importan como entradas en estado `draft`, que no se publican pero quedan
+ * disponibles y visibles con `site.mjs list`.
+ *
+ * Es idempotente: empareja por `wp_id`, así que reimportar no duplica.
+ *
+ * @returns {object} informe de lo incorporado
+ */
+function importDumpExtra(db, dump, imageMap, idToPath) {
+  const prefix = detectPrefix(dump);
+  const stats = summarizePosts(dump, prefix);
+  if (stats) {
+    const estados = Object.entries(stats.byStatus)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
+    log(`  ${prefix}posts: ${stats.total} filas (${estados})`);
+  }
+
+  const options = extractWpOptions(dump, prefix);
+  if (options.permalink_structure) log(`  permalinks: ${options.permalink_structure}`);
+  if (options.template) log(`  tema: ${options.template}`);
+
+  // Ajustes del sitio: sólo se rellenan huecos, no se pisa lo ya importado.
+  if (options.blogname || options.admin_email || options.blogdescription) {
+    db.prepare(`
+      UPDATE site SET
+        title = COALESCE(NULLIF(title, ''), ?),
+        description = COALESCE(NULLIF(description, ''), ?),
+        author_email = COALESCE(author_email, ?)
+      WHERE id = 1
+    `).run(options.blogname ?? null, options.blogdescription ?? null, options.admin_email ?? null);
+  }
+
+  // Borradores y programados.
+  const drafts = extractUnpublished(dump, prefix);
+  const findExisting = db.prepare('SELECT id FROM entries WHERE wp_id = ?');
+  const insert = db.prepare(`
+    INSERT INTO entries (kind, slug, title, summary, body, body_format, published_at,
+                         updated_at, status, lang, position, wp_id)
+    VALUES (?, ?, ?, ?, ?, 'markdown', ?, ?, 'draft', 'en', 0, ?)
+  `);
+
+  let added = 0;
+  let skipped = 0;
+  for (const d of drafts) {
+    if (!d.slug || findExisting.get(d.id)) {
+      skipped++;
+      continue;
+    }
+    const raw = expandShortcodes(d.content || '', idToPath);
+    const body = htmlToMarkdown(raw, { imageMap });
+    if (!body.trim()) {
+      skipped++;
+      continue;
+    }
+    insert.run(
+      d.type === 'page' ? 'page' : 'post',
+      d.slug,
+      htmlToText(d.title || d.slug),
+      htmlToText(body).slice(0, 200).trim() || null,
+      body,
+      d.date ? `${d.date.replace(' ', 'T')}Z` : null,
+      d.date ? `${d.date.replace(' ', 'T')}Z` : null,
+      d.id,
+    );
+    added++;
+  }
+  if (drafts.length) {
+    log(`  no publicados: ${added} importados como borrador${skipped ? `, ${skipped} omitidos` : ''}`);
+  }
+
+  // Menús: la tabla puede no existir si el sitio no usaba menús clásicos.
+  const menuItems = dump.tables[`${prefix}postmeta`]
+    ? dump.tables[`${prefix}postmeta`].rows.filter((r) => r.meta_key === '_menu_item_url').length
+    : 0;
+  if (menuItems) log(`  menús: ${menuItems} enlaces en postmeta`);
+
+  return { prefix, posts: stats, options, draftsImported: added, draftsSkipped: skipped, menuItems };
+}
+
+/** Detecta el prefijo de las tablas de WordPress (`wp_`, `wp2_`, `mod_`…). */
+function detectPrefix(dump) {
+  const hit = Object.keys(dump.tables).find((t) => t.endsWith('posts') && t.includes('_'));
+  return hit ? hit.slice(0, hit.length - 'posts'.length) : 'wp_';
 }
 
 /* ------------------------------------------------------------- migraciones */
@@ -423,7 +503,6 @@ async function main() {
   if (KEEP) {
     log('  modo --keep: no se borran datos existentes');
   }
-  const cvRestored = cvBackup ? restoreCvTables(db, cvBackup) : null;
 
   // 3. Medios (copia física + metadatos) para poder resolver las URLs.
   log('\n[1/4] Medios');
@@ -446,14 +525,16 @@ async function main() {
   log('\n[4/4] Identidad del sitio');
   await importSite(db, pages);
 
-  // 5. Dump opcional de MySQL, si el usuario lo ha dejado en el repo.
+  // 5. Dump opcional de MySQL: aporta lo que la API REST no expone sin
+  //    autenticación (borradores, ajustes, menús, revisiones).
   const dumpPath = DUMP ? resolve(DUMP) : findDump();
   if (dumpPath) {
     log(`\n[+] Dump de MySQL: ${dumpPath.replace(ROOT + '/', '')}`);
     try {
-      const summary = await parseSqlDump(await readFile(dumpPath, 'utf8'));
-      await writeFile(join(ROOT, 'db', 'dump-summary.json'), JSON.stringify(summary, null, 2));
-      log(`  ${summary.tables.length} tablas leídas -> db/dump-summary.json`);
+      const dump = await parseSqlDump(await readFile(dumpPath, 'utf8'));
+      const report = importDumpExtra(db, dump, imageMap, idToPath);
+      await writeFile(join(ROOT, 'db', 'dump-summary.json'), JSON.stringify({ summary: dump.summary, report }, null, 2));
+      log(`  ${dump.summary.length} tablas leídas -> db/dump-summary.json`);
     } catch (err) {
       log(`  ! no se pudo interpretar el dump: ${err.message}`);
     }
@@ -461,34 +542,39 @@ async function main() {
     log('\n[+] Sin dump de MySQL (opcional). Deja el .sql en la raíz y repite.');
   }
 
-  // 6. Volcar el resultado a site/, que pasa a ser la fuente editable.
-  //    Primero el CV (sus tablas no vienen de WordPress) y después las
-  //    entradas. El orden importa: cada sync reescribe sus propias tablas.
-  if (cvBackup === null || (cvRestored === 0 && cvBackup)) {
-    // El CV no existía o quedó vacío: si el archivo fuente sigue ahí, se
-    // reconstruye desde él. Así una base de datos recreada no pierde el CV.
+  // 6. El CV. `site/cv/curriculum.md` es la fuente de verdad: si existe, se
+  //    aplica SIEMPRE (después de importSite, para que mande sobre los enlaces
+  //    sociales deducidos de la home de WordPress). Si no existe, se recupera
+  //    lo que hubiera en la base de datos anterior.
+  const cvFile = join(ROOT, 'site', 'cv', 'curriculum.md');
+  let cvRestored = null;
+  if (existsSync(cvFile)) {
     try {
       const counts = syncCv();
-      log(`\n[+] CV reconstruido desde site/cv/: ${counts.education} títulos, ${counts.skills} tecnologías, ${counts.projects} proyectos`);
-    } catch {
-      log('\n[+] Sin site/cv/curriculum.md todavía (el CV se creará al hacer cv.mjs export)');
+      log(`\n[+] CV aplicado desde site/cv/: ${counts.education} títulos, ${counts.skills} tecnologías, ${counts.projects} proyectos, ${counts.links} enlaces`);
+    } catch (err) {
+      log(`\n[!] No se pudo aplicar site/cv/: ${err.message}`);
     }
-  } else if (cvRestored) {
-    log(`[+] CV conservado de la base de datos anterior (${cvRestored} filas)`);
+  } else if (cvBackup) {
+    cvRestored = restoreCvTables(db, cvBackup);
+    if (cvRestored) log(`\n[+] CV recuperado de la base de datos anterior (${cvRestored} filas)`);
+  } else {
+    log('\n[+] Sin site/cv/curriculum.md todavía (se creará al hacer cv.mjs export)');
   }
 
+  // 7. Volcar las entradas a site/, que pasa a ser la fuente editable.
   if (!args.includes('--no-export')) {
     const n = exportToSite();
     log(`\n[+] ${n} archivo(s) Markdown escritos en site/ — a partir de ahora se edita ahí.`);
     try {
-      const cvFile = exportCv();
-      log(`[+] CV volcado a ${cvFile.file.replace(ROOT + '/', '')}`);
+      const cvFileOut = exportCv();
+      log(`[+] CV volcado a ${cvFileOut.file.replace(ROOT + '/', '')}`);
     } catch (err) {
       log(`[+] CV no volcado: ${err.message}`);
     }
   }
 
-  // 7. Informe.
+  // 8. Informe.
   const stats = {
     entries: db.prepare('SELECT COUNT(*) n FROM entries').get().n,
     published: db.prepare("SELECT COUNT(*) n FROM entries WHERE status='published'").get().n,
