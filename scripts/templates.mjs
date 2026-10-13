@@ -122,8 +122,12 @@ export function card({ entry, site, showCategory = false }) {
   const cat = showCategory && entry.primaryCategory
     ? `<span class="chip chip--cat">${escapeHtml(entry.primaryCategory.name)}</span>`
     : '';
+  // Las tarjetas miden unos 380 px de ancho, así que se le dice al navegador
+  // cuánto va a ocupar la imagen: sin esto elegiría siempre la más grande.
   const thumb = entry.featuredUrl
-    ? `<img class="card__thumb" src="${escapeAttr(entry.featuredUrl)}" alt="" width="${entry.featured?.width || ''}" height="${entry.featured?.height || ''}" loading="lazy" decoding="async">`
+    ? `<img class="card__thumb" src="${escapeAttr(entry.featuredUrl)}"` +
+      `${entry.featuredSrcset ? ` srcset="${escapeAttr(entry.featuredSrcset)}" sizes="(max-width: 640px) 100vw, 380px"` : ''}` +
+      ` alt="" width="${entry.featured?.width || ''}" height="${entry.featured?.height || ''}" loading="lazy" decoding="async">`
     : '';
 
   return `<article class="card">

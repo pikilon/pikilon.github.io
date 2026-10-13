@@ -91,6 +91,16 @@ function loadData() {
 
   const media = new Map(all('SELECT * FROM media').map((m) => [m.id, m]));
 
+  // Variantes de cada medio (los tamaños que generó WordPress). Se sirven
+  // todas con `srcset` para que el navegador descargue la que necesita en vez
+  // del original: el retrato de la portada pasa de 79 KB a 18 KB.
+  const variantsByMedia = new Map();
+  for (const v of all('SELECT * FROM media_variants ORDER BY width')) {
+    if (!v.width || !v.height) continue;
+    if (!variantsByMedia.has(v.media_id)) variantsByMedia.set(v.media_id, []);
+    variantsByMedia.get(v.media_id).push(v);
+  }
+
   const terms = all(`
     SELECT t.*, COUNT(e.id) AS entries
     FROM terms t
@@ -132,11 +142,14 @@ function loadData() {
       html: normalizeAssetUrls(renderMarkdown(e.body || '')),
       featured: e.featured_id ? media.get(e.featured_id) : null,
       featuredUrl: e.featured_id ? mediaUrl(media.get(e.featured_id)) : '',
+      featuredSrcset: e.featured_id
+        ? srcsetFor(media.get(e.featured_id), variantsByMedia.get(e.featured_id), mediaUrl)
+        : '',
       readingMinutes: readingTime(e.body || ''),
     };
   });
 
-  return { site, entries: withMeta, terms, links, media, cv };
+  return { site, entries: withMeta, terms, links, media, variantsByMedia, cv };
 }
 
 /** Estimación de tiempo de lectura a 200 palabras por minuto. */
@@ -151,6 +164,53 @@ function readingTime(md) {
  * "wp-content/uploads/…"), así que aquí se les añade el prefijo.
  */
 export const mediaUrl = (m) => (m ? assetHref(m.path) : '');
+
+/**
+ * Variantes de la foto del CV.
+ * En la tabla `media` la ruta va sin el prefijo `assets/`, que es como la
+ * guarda el importador; aquí hay que normalizarla para poder buscar la fila.
+ */
+function portraitVariantsOf(site, media, variantsByMedia) {
+  if (!site?.author_photo) return [];
+  const wanted = String(site.author_photo).replace(/^\/?(assets\/)?/, '');
+  for (const [id, m] of media) {
+    if (m.path === wanted) return variantsByMedia.get(id) || [];
+  }
+  return [];
+}
+
+/**
+ * Construye el atributo `srcset` de un medio con todas sus variantes.
+ *
+ * WordPress generó cinco tamaños de cada imagen y se estaban sirviendo los
+ * originales: el retrato de la portada pesaba 79 KB para mostrarse a 170 px.
+ * Con `srcset` el navegador elige según el ancho real y la densidad de
+ * pantalla, así que en un móvil no se descarga la imagen grande.
+ *
+ * Se descartan las variantes de menos de 100 px de ancho: sólo aportan ruido
+ * al atributo y nunca ganan la elección.
+ *
+ * @param {object} main       fila de `media` (el original)
+ * @param {object[]} variants filas de `media_variants`
+ * @param {(m: object) => string} toUrl
+ * @returns {string} el valor de `srcset`, o cadena vacía si no hay variantes
+ */
+function srcsetFor(main, variants, toUrl) {
+  if (!main) return '';
+  const byWidth = new Map();
+
+  // El original entra por su ancho real (si lo conocemos).
+  if (main.width) byWidth.set(main.width, toUrl(main));
+  for (const v of variants || []) {
+    if (v.width < 100) continue;
+    // A igual ancho, se queda la primera (las variantes vienen ordenadas).
+    if (!byWidth.has(v.width)) byWidth.set(v.width, assetHref(v.path));
+  }
+
+  const entries = [...byWidth].sort((a, b) => a[0] - b[0]);
+  if (entries.length < 2) return ''; // con una sola no hay nada que elegir
+  return entries.map(([w, url]) => `${url} ${w}w`).join(', ');
+}
 
 /**
  * Normaliza una ruta de recurso a una URL absoluta del sitio.
@@ -185,7 +245,7 @@ export function normalizeAssetUrls(html) {
 
 async function build() {
   const t0 = Date.now();
-  const { site, entries, terms, links, cv } = loadData();
+  const { site, entries, terms, links, media, variantsByMedia, cv } = loadData();
   const posts = entries.filter((e) => e.kind === 'post');
 
   console.log(`Generando ${entries.length} entradas + ${terms.length} términos en ${OUT.replace(ROOT + '/', '')}/\n`);
@@ -212,7 +272,13 @@ async function build() {
       site,
       title: site.title,
       description: site.description || site.tagline || '',
-      content: cvPage({ site, cv, links }) + postsSection(recent, site),
+      content: cvPage({
+        site,
+        cv,
+        links,
+        // Variantes del retrato, para poder servirlo en el tamaño que se ve.
+        portraitVariants: portraitVariantsOf(site, media, variantsByMedia),
+      }) + postsSection(recent, site),
       url: '/',
       nav: 'home',
     }),
@@ -400,15 +466,23 @@ function redirectPage({ from, to, site }) {
  * estructuradas. Cada sección se omite si no tiene datos, así el CV se puede
  * ir rellenando poco a poco sin que queden huecos vacíos.
  */
-function cvPage({ site, cv, links }) {
-  const out = [];
+function cvPage({ site, cv, links, portraitVariants = [] }) {  const out = [];
 
   // --- cabecera: foto, nombre y presentación ---
   const photo = site.author_photo ? assetHref(site.author_photo) : null;
   out.push('<header class="cv__head">');
   if (photo) {
+    // El retrato se muestra a 170 px; sin `srcset` se descargaba el original
+    // de 538 px (79 KB en vez de 18 KB) en todas las visitas.
+    const set = srcsetFor(
+      { path: String(site.author_photo).replace(/^assets\//, ''), width: null },
+      portraitVariants,
+      (m) => assetHref(m.path),
+    );
     out.push(
-      `<img class="portrait" src="${escapeAttr(photo)}" alt="${escapeAttr(site.author_name)}" ` +
+      `<img class="portrait" src="${escapeAttr(photo)}"` +
+      `${set ? ` srcset="${escapeAttr(set)}" sizes="170px"` : ''} ` +
+      `alt="${escapeAttr(site.author_name)}" ` +
       `width="170" height="170" loading="eager" decoding="async">`,
     );
   }
@@ -626,7 +700,9 @@ function article({ entry, related, site }) {
     .join(' · ');
 
   const featured = entry.featured
-    ? `<img class="hero" src="${escapeAttr(entry.featuredUrl)}" alt="${escapeAttr(entry.featured.alt || '')}" width="${entry.featured.width || ''}" height="${entry.featured.height || ''}" loading="eager" decoding="async">`
+    ? `<img class="hero" src="${escapeAttr(entry.featuredUrl)}"` +
+      `${entry.featuredSrcset ? ` srcset="${escapeAttr(entry.featuredSrcset)}" sizes="(max-width: 900px) 100vw, 42rem"` : ''}` +
+      ` alt="${escapeAttr(entry.featured.alt || '')}" width="${entry.featured.width || ''}" height="${entry.featured.height || ''}" loading="eager" decoding="async">`
     : '';
 
   const relatedBlock = related.length

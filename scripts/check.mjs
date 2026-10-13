@@ -255,6 +255,29 @@ function checkSite() {
       }
       if (!existsSync(target)) fail(`${rel}: recurso roto -> ${url}`);
     }
+
+    // Cada candidato de un `srcset` también tiene que existir: un srcset con
+    // una variante ausente puede hacer que el navegador elija justo la que
+    // falta y muestre una imagen rota.
+    for (const m of html.matchAll(/srcset="([^"]+)"/g)) {
+      for (const candidate of m[1].split(',')) {
+        const url = candidate.trim().split(/\s+/)[0];
+        if (!url || /^https?:/.test(url)) continue;
+        const target = url.startsWith('/')
+          ? join(ROOT, 'public', url.replace(/^\/+/, ''))
+          : resolve(dirname(file), url);
+        if (!existsSync(target)) fail(`${rel}: variante de srcset ausente -> ${url}`);
+      }
+    }
+
+    // El retrato y las imágenes destacadas deberían ofrecer varios tamaños:
+    // sin `srcset` se descarga el original aunque se muestre en miniatura.
+    for (const m of html.matchAll(/<img[^>]*class="(?:portrait|hero|card__thumb)"[^>]*>/g)) {
+      if (!/srcset=/.test(m[0])) {
+        const src = (m[0].match(/src="([^"]+)"/) || [])[1];
+        warn(`${rel}: imagen sin srcset -> ${src}`);
+      }
+    }
   }
 
   console.log(`  ${htmlFiles.length} páginas HTML revisadas en public/`);
