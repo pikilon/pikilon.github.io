@@ -109,10 +109,15 @@ async function main() {
     return;
   }
 
-  if (LOCAL) {
-    await deployLocally(generated, removed);
-  } else {
+  // El despliegue se hace desde ESTE repositorio, que es el remoto de GitHub
+  // Pages. Clonar y commitear aparte creaba dos historias paralelas (una en
+  // local, otra en el clon) que había que ir fusionando a mano en cada
+  // publicación, con riesgo de perder cambios. El modo clon queda sólo como
+  // salida de emergencia con --clone.
+  if (args.includes('--clone')) {
     await deployToClone(generated, removed);
+  } else {
+    await deployLocally(generated, removed);
   }
 
   // 2. Manifiesto de esta publicación, para poder limpiar la próxima vez.
@@ -140,12 +145,26 @@ function isProtected(rel) {
 
 /**
  * Copia el sitio a la raíz de ESTE repositorio.
+ *
  * El repositorio del workspace tiene como remoto el de GitHub Pages, así que
  * el sitio generado convive con el código fuente y se publica con un push.
+ * Antes de commitear se trae lo que haya en el remoto, para que la historia
+ * no se bifurque.
  */
 async function deployLocally(generated, removed) {
-  log('Copiando public/ a la raíz del repositorio…');
+  // 1. Ponerse al día con el remoto. Si la rama local hubiera quedado atrás
+  //    (por ejemplo tras publicar desde otra máquina), un push fallaría; es
+  //    mejor enterarse ahora y decirlo con claridad.
+  log('Comprobando el estado del remoto…');
+  sh('git', ['fetch', 'origin', 'main'], { cwd: ROOT, allowFail: true });
+  const behind = Number(sh('git', ['rev-list', '--count', 'HEAD..origin/main'], { cwd: ROOT, allowFail: true }) || 0);
+  if (behind > 0) {
+    log(`El remoto tiene ${behind} commit(s) que no están en local; se integran primero.`);
+    sh('git', ['merge', '--no-edit', 'origin/main'], { cwd: ROOT, allowFail: true });
+  }
 
+  // 2. Copiar el sitio generado, retirando lo que ya no se genera.
+  log('Copiando public/ a la raíz del repositorio…');
   for (const f of removed) {
     const p = join(ROOT, f);
     if (existsSync(p)) await rm(p, { force: true });
@@ -157,11 +176,12 @@ async function deployLocally(generated, removed) {
     await cp(from, to);
   }
 
-  // Sólo se añade lo generado: el código fuente y el archivo no se tocan.
-  sh('git', ['add', '--', ...generated], { cwd: ROOT, allowFail: true });
-  if (removed.length) {
-    sh('git', ['rm', '--cached', '--ignore-unmatch', '--', ...removed], { cwd: ROOT, allowFail: true });
-  }
+  // 3. Preparar el commit. Sólo se tocan las rutas generadas: el código
+  //    fuente, el archivo del WordPress y la documentación quedan intactos.
+  //    `git add -A -- <rutas>` recoge también los borrados, cosa que
+  //    `git add` a secas no hace.
+  const paths = [...new Set([...generated, ...removed])];
+  if (paths.length) sh('git', ['add', '-A', '--', ...paths], { cwd: ROOT, allowFail: true });
 
   const status = sh('git', ['status', '--porcelain'], { cwd: ROOT });
   if (!status) {
