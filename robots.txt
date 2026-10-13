@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pikilon.com/sitemap.xml

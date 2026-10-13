@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Pikilon's portfolio</title>
+  <link>https://pikilon.com/</link>
+  <description>The web artisan</description>
+  <language>en</language>
+  <atom:link href="https://pikilon.com/feed.xml" rel="self" type="application/rss+xml"/>
+  <item>
+    <title>Serverless Telegram Bot with Firebase</title>
+    <link>https://pikilon.com/code/serverless-telegram-bot-using-firebase-in-5-minutes/</link>
+    <guid isPermaLink="true">https://pikilon.com/code/serverless-telegram-bot-using-firebase-in-5-minutes/</guid>
+    <pubDate>Sat, 23 Feb 2019 12:00:00 GMT</pubDate>
+    <category>code</category>
+    <description>Using (free) Firebase Cloud Functions to start your first telegram bot, as always with Javascript. 1. Create your bot Easy and fast: Search in telegram @BotFather or open this link Write the comman…</description>
+  </item>
+  <item>
+    <title>Browser wars II: The iOS betrayal</title>
+    <link>https://pikilon.com/imho/browser-wars-ii-the-ios-betrayal/</link>
+    <guid isPermaLink="true">https://pikilon.com/imho/browser-wars-ii-the-ios-betrayal/</guid>
+    <pubDate>Wed, 30 Jan 2019 12:00:00 GMT</pubDate>
+    <category>IMHO</category>
+    <description>React Native or Flutter are here to help you to create easily your App in iOS or Android (even web), using the same code and with an awesome performance. But there is only a little thing… The Golde…</description>
+  </item>
+  <item>
+    <title>Rem + em, a love story</title>
+    <link>https://pikilon.com/code/rem-em-love-story/</link>
+    <guid isPermaLink="true">https://pikilon.com/code/rem-em-love-story/</guid>
+    <pubDate>Wed, 28 Jun 2017 12:00:00 GMT</pubDate>
+    <category>code</category>
+    <description>With the new times using javascript for everything on the frontend (React.js, Angular.js) CSS is targeting more and more modular coding. This is why if you are progressing in CSS you should learn B…</description>
+  </item>
+  <item>
+    <title>Better bootstrap grid</title>
+    <link>https://pikilon.com/code/better-bootstrap-grid/</link>
+    <guid isPermaLink="true">https://pikilon.com/code/better-bootstrap-grid/</guid>
+    <pubDate>Tue, 12 Apr 2016 12:00:00 GMT</pubDate>
+    <category>code</category>
+    <description>This small script will improve the default bootstrap grid, add it before bootstrap css</description>
+  </item>
+  <item>
+    <title>No more modals</title>
+    <link>https://pikilon.com/imho/no-more-modals/</link>
+    <guid isPermaLink="true">https://pikilon.com/imho/no-more-modals/</guid>
+    <pubDate>Mon, 14 Dec 2015 12:00:00 GMT</pubDate>
+    <category>IMHO</category>
+    <description>The lightbox/Modal windows are overused this years, are the new 90’s Pop Up windows, so think it twice before use them.</description>
+  </item>
+  <item>
+    <title>CodeAnyWhere, literally, anywhere</title>
+    <link>https://pikilon.com/imho/codeanywhere-literally-anywhere/</link>
+    <guid isPermaLink="true">https://pikilon.com/imho/codeanywhere-literally-anywhere/</guid>
+    <pubDate>Mon, 14 Dec 2015 12:00:00 GMT</pubDate>
+    <category>IMHO</category>
+    <description>if you are a web developer you’ll love codeanywhere, a webapp based IDE that rules!</description>
+  </item>
+  <item>
+    <title>Firefox and WebP</title>
+    <link>https://pikilon.com/imho/firefox-and-webp/</link>
+    <guid isPermaLink="true">https://pikilon.com/imho/firefox-and-webp/</guid>
+    <pubDate>Mon, 14 Dec 2015 12:00:00 GMT</pubDate>
+    <category>IMHO</category>
+    <description>Why doesn’t mozilla support Webp image format? because F*** you, that’s why</description>
+  </item>
+  <item>
+    <title>Your first WordPress shortcode</title>
+    <link>https://pikilon.com/code/your-first-wordpress-shortcode/</link>
+    <guid isPermaLink="true">https://pikilon.com/code/your-first-wordpress-shortcode/</guid>
+    <pubDate>Mon, 14 Dec 2015 12:00:00 GMT</pubDate>
+    <category>code</category>
+    <description>Don’t be afraid, make your own Wordpress shordcode today!</description>
+  </item>
+  <item>
+    <title>Implement Lazy Responsive images in your wordpress</title>
+    <link>https://pikilon.com/code/implement-lazy-responsive-images-in-your-wordpress/</link>
+    <guid isPermaLink="true">https://pikilon.com/code/implement-lazy-responsive-images-in-your-wordpress/</guid>
+    <pubDate>Mon, 14 Dec 2015 12:00:00 GMT</pubDate>
+    <category>code</category>
+    <description>What are they?, can be used today?, How fast it going to become your website using them?</description>
+  </item>
+</channel>
+</rss>

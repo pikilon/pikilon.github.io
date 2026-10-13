@@ -1,0 +1,6 @@
+# Categorías: WordPress servía /category/<slug>/ además de /cat/<slug>/.
+/category/code/  /cat/code/  301
+/category/imho/  /cat/imho/  301
+
+# El feed antiguo como XML.
+/feed/  /feed.xml  301
