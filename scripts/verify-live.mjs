@@ -24,11 +24,33 @@ const BASE = (process.argv[2] || 'https://pikilon.github.io').replace(/\/$/, '')
 const ok = [];
 const bad = [];
 
+/** Registra un fallo con el mismo formato que los demás. */
+const fail = (msg) => bad.push(msg);
+
+/**
+ * Petición con timeout.
+ * `fetch` no tiene timeout por defecto: una sola respuesta que se quede
+ * colgada bloquearía la verificación entera sin dar ninguna pista.
+ */
+async function request(url, { redirect = 'manual', timeout = 20000 } = {}) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeout);
+  try {
+    return await fetch(url, {
+      redirect,
+      headers: { 'user-agent': 'pikilon-verify/1.0' },
+      signal: ctl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /** Lanza una petición y registra el resultado esperado. */
 async function head(path, { expect = 200, label = path } = {}) {
   const url = `${BASE}${path}`;
   try {
-    const res = await fetch(url, { redirect: 'manual', headers: { 'user-agent': 'pikilon-verify/1.0' } });
+    const res = await request(url);
     const good = Array.isArray(expect) ? expect.includes(res.status) : res.status === expect;
     (good ? ok : bad).push(`${label} -> ${res.status}${good ? '' : ` (esperado ${expect})`}`);
     return res;
@@ -48,6 +70,19 @@ async function main() {
     const html = await home.text();
     if (!/<title>[^<]+<\/title>/i.test(html)) bad.push('portada: sin <title>');
     else ok.push(`portada: título "${html.match(/<title>([^<]+)<\/title>/i)[1]}"`);
+
+    // La portada es el CV: tiene que llevar el nombre y la presentación.
+    if (!/<h1>[^<]+<\/h1>/.test(html)) fail('portada: sin <h1> con el nombre');
+    // La clase real es "prose cv__bio", así que la comprobación no puede
+    // exigir que `cv__bio` sea la única clase del elemento.
+    if (!/class="[^"]*\bcv__bio\b[^"]*"/.test(html)) fail('portada: sin presentación (cv__bio)');
+    if (/Escribe aquí tu presentación/.test(html)) {
+      fail('portada: sigue el texto de plantilla del CV');
+    }
+    // Un CV sin ninguna sección sería un CV vacío.
+    const secciones = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map((m) => m[1]);
+    if (!secciones.length) fail('portada: el CV no tiene ninguna sección');
+    else ok.push(`portada/CV: secciones ${secciones.join(', ')}`);
   }
   await head('/writing/');
   await head('/topics/');
@@ -57,7 +92,7 @@ async function main() {
   console.log('\nURLs del sitemap');
   let sitemap;
   try {
-    sitemap = await fetch(`${BASE}/sitemap.xml`).then((r) => (r.ok ? r.text() : ''));
+    sitemap = await request(`${BASE}/sitemap.xml`).then((r) => (r.ok ? r.text() : ''));
   } catch {
     sitemap = '';
   }
