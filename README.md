@@ -278,6 +278,16 @@ Comprueba cada URL del sitemap, una muestra de los recursos, las
 redirecciones heredadas de WordPress, la página 404 y que los proyectos
 hermanos del dominio compartido sigan respondiendo.
 
+## Rendimiento
+
+El sitio no carga nada de fuera: ni fuentes, ni analítica, ni frameworks. El
+CSS va en línea y no hay JavaScript salvo el botón de imprimir del CV.
+
+Las imágenes se sirven con `srcset` y `sizes`, usando las variantes que ya
+había generado WordPress, así que el navegador descarga el tamaño que
+necesita en vez del original. Sobre las 20 imágenes visibles del sitio eso es
+pasar de 2,7 MB a 1,6 MB; el retrato de la portada, de 79 KB a 18 KB.
+
 ## Estructura del repositorio
 
 ```
