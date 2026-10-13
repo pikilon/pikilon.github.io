@@ -111,15 +111,33 @@ export function expandShortcodes(html, mediaById = new Map()) {
 
 /**
  * Convierte `height="265"` en un objeto.
- * WordPress guarda las comillas como entidades (&#8221;), así que hay que
- * decodificar antes de buscar los atributos y aceptar también comillas
- * tipográficas como delimitadores.
+ *
+ * Hay que decodificar las entidades ANTES de buscar los atributos: WordPress
+ * guarda las comillas como entidades y, al sanear el contenido, las normaliza
+ * de forma inconsistente, de modo que un cortocircuito acaba con comillas que
+ * ni son rectas ni coinciden entre sí. En el contenido real aparece:
+ *
+ *   slug_hash=&#8221;abc&#8243;   ->   slug_hash=”abc″
+ *
+ * Es decir, abre con `”` (U+201D, comilla de cierre) y cierra con `″`
+ * (U+2033, doble prima). Por eso se acepta como delimitador cualquier
+ * carácter tipográfico de cita, sin exigir que la pareja coincida: lo que
+ * cierra el valor es la siguiente comilla, sea la que sea.
  */
+const QUOTES = '"\u201c\u201d\u2033\u2018\u2019\u201a\u201e\u201f\u00ab\u00bb\'';
+
 export function parseAttrs(str = '') {
-  const out = {};
   const decoded = decodeEntities(String(str));
-  for (const m of decoded.matchAll(/([a-z_]+)\s*=\s*(?:["“”']([^"“”']*)["“”']|([^\s"“”'\]]+))/gi)) {
-    out[m[1].toLowerCase()] = (m[2] ?? m[3] ?? '').trim();
+  const out = {};
+  const quoted = new RegExp(`([a-z_][\\w-]*)\\s*=\\s*[${QUOTES}]([^${QUOTES}]*)[${QUOTES}]`, 'gi');
+  for (const m of decoded.matchAll(quoted)) out[m[1].toLowerCase()] = m[2].trim();
+
+  // Atributos sin comillas. Se buscan por separado para no reinterpretar el
+  // contenido de un valor ya capturado.
+  const bare = new RegExp(`([a-z_][\\w-]*)\\s*=\\s*(?![${QUOTES}])([^\\s${QUOTES}\\]]+)`, 'gi');
+  for (const m of decoded.matchAll(bare)) {
+    const key = m[1].toLowerCase();
+    if (!(key in out)) out[key] = m[2].trim();
   }
   return out;
 }

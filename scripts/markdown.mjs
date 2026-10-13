@@ -24,7 +24,9 @@ export function renderMarkdown(md = '') {
   const out = [];
   let i = 0;
 
+
   while (i < lines.length) {
+    const __before = i;
     const line = lines[i];
 
     // Línea en blanco
@@ -44,9 +46,20 @@ export function renderMarkdown(md = '') {
       continue;
     }
 
+    // Etiqueta de lista huérfana (`<ul>`, `</ol>`…).
+    //
+    // El conversor desde HTML deja estas etiquetas sueltas alrededor de los
+    // `<li>`, y el bloque de lista ya construye su propio envoltorio, así que
+    // aquí simplemente se descartan. Es importante que este caso exista: si se
+    // deja caer al bloque de párrafo, éste lo rechaza (no debe envolver una
+    // lista en un `<p>`) y el parser no avanzaría nunca.
+    if (/^\s*<\/?[uo]l\b[^>]*>\s*$/i.test(line)) {
+      i++;
+      continue;
+    }
+
     // Encabezado
-    const h = line.match(/^(#{1,6})\s+(.*)$/);
-    if (h) {
+    const h = line.match(/^(#{1,6})\s+(.*)$/);    if (h) {
       const level = h[1].length;
       out.push(`<h${level}>${inline(h[2])}</h${level}>`);
       i++;
@@ -95,6 +108,12 @@ export function renderMarkdown(md = '') {
     // párrafo por viñeta, y sin esto cada elemento sería una lista distinta.
     if (/^\s*([-*+]|\d+\.)\s+/.test(line) || /^\s*<li\b/i.test(line)) {
       const ordered = /^\s*\d+\.\s/.test(line);
+      // El tipo de lista no puede mezclarse: una lista numerada justo después
+      // de una con viñetas es otra lista, no la continuación de la primera.
+      // (`<li>` no distingue, así que cuando viene de HTML se respeta el tipo
+      // con el que empezó el bloque.)
+      const matchesType = (text) =>
+        /^\s*<li\b/i.test(text) || (/^\s*\d+\.\s/.test(text) === ordered);
       const items = [];
       while (i < lines.length) {
         const cur = lines[i];
@@ -104,15 +123,16 @@ export function renderMarkdown(md = '') {
           continue;
         }
         if (!cur.trim()) {
-          // Línea en blanco: sólo se salta si el siguiente elemento sigue la lista.
+          // Línea en blanco: sólo se salta si el siguiente elemento sigue la
+          // misma lista (mismo tipo).
           const next = lines[i + 1];
-          if (next !== undefined && (/^\s*([-*+]|\d+\.)\s+/.test(next) || /^\s*<li\b/i.test(next))) {
+          if (next !== undefined && (/^\s*([-*+]|\d+\.)\s+/.test(next) || /^\s*<li\b/i.test(next)) && matchesType(next)) {
             i++;
             continue;
           }
           break;
         }
-        const isItem = /^\s*([-*+]|\d+\.)\s+/.test(cur) || /^\s*<li\b/i.test(cur);
+        const isItem = (/^\s*([-*+]|\d+\.)\s+/.test(cur) || /^\s*<li\b/i.test(cur)) && matchesType(cur);
         if (!isItem) break;
 
         let text = cur.replace(/^\s*(?:[-*+]|\d+\.)\s+/, '').replace(/^\s*<li\b[^>]*>/i, '');
@@ -125,7 +145,16 @@ export function renderMarkdown(md = '') {
         items.push(text.replace(/<\/li>\s*$/i, ''));
       }
       const tag = ordered ? 'ol' : 'ul';
-      out.push(`<${tag}>\n${items.map((t) => `  <li>${inline(t)}</li>`).join('\n')}\n</${tag}>`);
+      // Listas contiguas del mismo tipo se funden en una sola. El conversor
+      // desde WordPress genera un `<ul>` por viñeta, y sin esto el resultado
+      // serían cinco listas de un elemento en vez de una lista de cinco.
+      const last = out[out.length - 1];
+      const itemsHtml = items.map((t) => `  <li>${inline(t)}</li>`).join('\n');
+      if (last && last.startsWith(`<${tag}>`)) {
+        out[out.length - 1] = `${last.slice(0, -`</${tag}>`.length)}${itemsHtml}\n</${tag}>`;
+      } else {
+        out.push(`<${tag}>\n${itemsHtml}\n</${tag}>`);
+      }
       continue;
     }
 
@@ -154,6 +183,14 @@ export function renderMarkdown(md = '') {
       i++;
     }
     if (buf.length) out.push(`<p>${inline(buf.join('\n'))}</p>`);
+
+    // Red de seguridad: si alguna rama no avanza el índice, esto lo convierte
+    // en un error claro en vez de dejar el proceso colgado para siempre.
+    // Ya pasó una vez: el bloque de párrafo rechazaba las etiquetas `<ul>`
+    // sueltas y ninguna otra rama las consumía.
+    if (i === __before) {
+      throw new Error(`El parser de Markdown no avanza en la línea ${i}: ${JSON.stringify(line)}`);
+    }
   }
 
   return out.join('\n') + '\n';

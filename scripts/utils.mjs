@@ -43,15 +43,29 @@ export function iconFor(url = '') {
   return String(url).startsWith('mailto:') ? 'email' : 'web';
 }
 
-/** Fecha ISO-8601 UTC completa; admite `YYYY-MM-DD` y fecha con hora. */
+/** Fecha ISO-8601 UTC completa; admite `YYYY-MM`, `YYYY-MM-DD` y con hora. */
 export function toIsoUtc(date, fallbackTime = '12:00:00') {
   if (!date) return null;
   const s = String(date).trim();
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(s)) return s;
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}(?::\d{2})?))?/);
-  if (!m) return null;
-  const t = (m[2] || fallbackTime).padEnd(8, ':00').slice(0, 8);
-  return `${m[1]}T${t}Z`;
+
+  const withDay = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}:\d{2}(?::\d{2})?))?/);
+  if (withDay) {
+    const [, y, mo, d, time] = withDay;
+    const t = (time || fallbackTime).padEnd(8, ':00').slice(0, 8);
+    return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T${t}Z`;
+  }
+
+  // Sólo año y mes (como en `- inicio: 2020-03`): se asume el día 1. Es el
+  // formato que usan los archivos del CV, donde no se sabe el día.
+  const yearMonth = s.match(/^(\d{4})-(\d{1,2})$/);
+  if (yearMonth) {
+    const [, y, mo] = yearMonth;
+    const t = fallbackTime.padEnd(8, ':00').slice(0, 8);
+    return `${y}-${mo.padStart(2, '0')}-01T${t}Z`;
+  }
+
+  return null;
 }
 
 /**

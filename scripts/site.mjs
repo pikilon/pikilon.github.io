@@ -131,10 +131,19 @@ const commands = {
     return 0;
   },
 
-  /** Publica todo: sincroniza, audita y genera. */
+  /** Publica todo: pasa las pruebas, sincroniza, audita y genera. */
   publish() {
     const files = positional.length ? positional : null;
-    console.log('== 1/3 Sincronizar site/ -> base de datos\n');
+
+    // Las pruebas van primero: si el parser de Markdown está roto, publicar
+    // generaría contenido incorrecto y mejor no llegar ni a escribirlo.
+    console.log('== 1/4 Pasar las pruebas\n');
+    if (run('test.mjs')) {
+      console.error('\nHay pruebas fallando: se detiene la publicación.');
+      return 1;
+    }
+
+    console.log('\n== 2/4 Sincronizar site/ -> base de datos\n');
     if (files) {
       for (const f of files) {
         try {
@@ -150,18 +159,23 @@ const commands = {
       if (rc) return rc;
     }
 
-    console.log('\n== 2/3 Auditar\n');
+    console.log('\n== 3/4 Auditar\n');
     if (run('check.mjs')) {
       console.error('\nLa auditoría falló: se detiene la publicación.');
       return 1;
     }
 
-    console.log('\n== 3/3 Generar el sitio\n');
+    console.log('\n== 4/4 Generar el sitio\n');
     const rc = run('build.mjs', flags.get('drafts') ? ['--drafts'] : []);
     if (rc) return rc;
 
     console.log('Hecho. Revisa public/index.html o despliega con "node scripts/site.mjs deploy".');
     return 0;
+  },
+
+  /** Ejecuta las pruebas de las piezas críticas. */
+  test() {
+    return run('test.mjs', flags.get('verbose') ? ['--verbose'] : []);
   },
 
   check() {
@@ -201,11 +215,14 @@ const HELP = `Gestión del sitio pikilon.com
   node scripts/site.mjs build [--drafts]
         Genera el HTML estático en public/.
 
+  node scripts/site.mjs test [--verbose]
+        Pasa las pruebas del parser de Markdown y del conversor de WordPress.
+
   node scripts/site.mjs check
         Audita la integridad de la base de datos y del sitio generado.
 
   node scripts/site.mjs publish [archivo.md ...]
-        Sincroniza, audita y genera. Es el comando del día a día.
+        Pasa las pruebas, sincroniza, audita y genera. Es el comando del día a día.
 
   node scripts/site.mjs deploy [--dry-run]
         Copia public/ al repositorio de GitHub Pages.
