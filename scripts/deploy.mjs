@@ -181,21 +181,38 @@ async function deployLocally(generated, removed) {
   //    `git add -A -- <rutas>` recoge también los borrados, cosa que
   //    `git add` a secas no hace.
   const paths = [...new Set([...generated, ...removed])];
-  if (paths.length) sh('git', ['add', '-A', '--', ...paths], { cwd: ROOT, allowFail: true });
-
-  const status = sh('git', ['status', '--porcelain'], { cwd: ROOT });
-  if (!status) {
-    log('Nada que publicar: el sitio generado es idéntico al ya subido.');
+  if (paths.length) {
+    // `-A` es necesario para que los archivos retirados queden registrados como
+    // borrados; con `git add` a secas seguirían publicados.
+    sh('git', ['add', '-A', '--', ...paths], { cwd: ROOT, allowFail: true });
+  } else {
+    log('El manifiesto y el sitio generado están vacíos: nada que preparar.');
     return;
   }
 
-  sh('git', ['commit', '-m', `Publicar el sitio (${generated.length} archivos)`], { cwd: ROOT });
-  log('Commit creado.');
-
-  if (!NO_PUSH) {
-    sh('git', ['push', 'origin', 'main'], { cwd: ROOT });
-    log(`Subido a ${REMOTE}`);
+  const status = sh('git', ['status', '--porcelain'], { cwd: ROOT });
+  if (status) {
+    sh('git', ['commit', '-m', `Publicar el sitio (${generated.length} archivos)`], { cwd: ROOT });
+    log('Commit creado.');
+  } else {
+    log('El sitio generado es idéntico al ya publicado: no hace falta commit.');
   }
+
+  // El push se hace SIEMPRE, aunque no hubiera nada que commitear: puede
+  // haber commits locales pendientes (cambios de scripts, documentación) que
+  // salieron de un `merge` con el remoto y que de otro modo se quedarían sin
+  // subir, dejando la rama local por delante de la remota.
+  if (NO_PUSH) {
+    log('--no-push: no se sube nada.');
+    return;
+  }
+  const pending = sh('git', ['log', '--oneline', 'origin/main..HEAD'], { cwd: ROOT, allowFail: true });
+  if (!pending) {
+    log('Nada que subir: el remoto ya está al día.');
+    return;
+  }
+  sh('git', ['push', 'origin', 'main'], { cwd: ROOT });
+  log(`Subido a ${REMOTE} (${pending.split('\n').length} commit(s))`);
 }
 
 /**
