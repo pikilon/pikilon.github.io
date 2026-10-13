@@ -124,6 +124,51 @@ El sitio se publica en `pikilon/pikilon.github.io`. Detalles importantes:
   todavía: mientras tanto, el sitio responde en
   `https://pikilon.github.io/` y el WordPress antiguo sigue en el dominio.
 
+### Pasar pikilon.com a GitHub Pages (pendiente)
+
+El WordPress de Hostinger **sigue funcionando**: no se ha tocado nada del
+hosting. Mientras no se cambie el DNS, el dominio sigue sirviendo el WordPress
+antiguo y no hay ninguna prisa. Cuando se quiera hacer el cambio:
+
+1. **Añadir el dominio en GitHub**: `Settings → Pages → Custom domain` con
+   `pikilon.com`. Eso crea el archivo `CNAME` en el repositorio.
+2. **En hPanel (Hostinger), borrar los registros DNS actuales** del dominio y
+   poner los de GitHub Pages:
+
+   | Tipo | Nombre | Valor |
+   |---|---|---|
+   | A | `@` | `185.199.108.153` |
+   | A | `@` | `185.199.109.153` |
+   | A | `@` | `185.199.110.153` |
+   | A | `@` | `185.199.111.153` |
+   | CNAME | `www` | `pikilon.github.io` |
+
+3. **Esperar a que se propague** (de minutos a unas horas) y activar
+   `Enforce HTTPS` en la misma pantalla de Pages.
+
+> **Antes de hacerlo, tener en cuenta dos cosas.** Primero, el WordPress
+> antiguo dejará de ser accesible en el dominio: conviene descargar antes el
+> respaldo de la base de datos desde hPanel (`Bases de datos → phpMyAdmin →
+> Exportar`). Deja el `.sql` en la raíz del repositorio y ejecuta
+> `node scripts/import.mjs` para incorporarlo. Segundo, `die-hard-dice` y
+> `red-line` comparten hoy el dominio `pikilon.github.io`; al apuntar
+> `pikilon.com` a GitHub Pages seguirán accesibles en
+> `https://pikilon.github.io/die-hard-dice/` y `/red-line/`, pero conviene
+> añadirles un enlace desde el CV.
+
+## Verificar el sitio desplegado
+
+`check.mjs` valida el HTML en disco. Para comprobar lo que sirve el servidor:
+
+```bash
+node scripts/verify-live.mjs                          # pikilon.github.io
+node scripts/verify-live.mjs https://pikilon.com      # el dominio propio
+```
+
+Comprueba cada URL del sitemap, una muestra de los recursos, las
+redirecciones heredadas de WordPress, la página 404 y que los proyectos
+hermanos del dominio compartido sigan respondiendo.
+
 ## Estructura del repositorio
 
 ```
