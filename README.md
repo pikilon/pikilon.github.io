@@ -86,6 +86,17 @@ Un párrafo de contexto sobre el puesto.
 Para formación y proyectos el formato es el mismo, cambiando `titulo —`
 institución y `repo:` / `demo:` respectivamente.
 
+### Imprimir el CV
+
+La portada tiene un botón **Imprimir o guardar en PDF** que usa
+`window.print()`: el navegador permite guardarlo como PDF sin nada más
+instalado. Hay una hoja de estilos de impresión que quita la navegación y el
+pie, reduce los márgenes y evita que un puesto se parta entre dos páginas.
+
+Si prefieres un PDF generado en el servidor, la vía natural sería un
+`scripts/pdf.mjs` que use el mismo HTML; hoy no existe porque añadiría una
+dependencia (un navegador headless) a un sitio que no tiene ninguna.
+
 ## Publicar un artículo
 
 ```bash
