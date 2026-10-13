@@ -98,6 +98,43 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
 }
 #profile_photo p{margin:0}
 
+/* CV */
+.cv__head{margin:.5rem 0 1.5rem}
+.cv__head h1{
+  font-size:clamp(1.9rem,5vw,2.6rem);line-height:1.1;letter-spacing:-.03em;margin:0 0 .3rem
+}
+.cv__tagline{color:var(--muted);font-size:1.05rem;margin:0}
+.cv__bio{max-width:var(--max)}
+.cv__bio p{margin:0 0 1rem}
+.cv__links{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0 0;padding:0}
+.cv__link{
+  display:inline-block;padding:.35rem .75rem;border:1px solid var(--line);border-radius:999px;
+  text-decoration:none;font-size:.9rem;color:var(--fg);background:var(--card)
+}
+.cv__link:hover{border-color:var(--accent);color:var(--accent)}
+.cv__section{margin:2.75rem 0 0;max-width:var(--max)}
+.cv__section > h2{
+  font-size:1.05rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+  font-weight:600;margin:0 0 1.25rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)
+}
+.cv__item{margin:0 0 1.75rem}
+.cv__itemHead{display:flex;flex-wrap:wrap;gap:.15rem .75rem;align-items:baseline;justify-content:space-between}
+.cv__item h3{font-size:1.02rem;margin:0;letter-spacing:-.01em;font-weight:650}
+.cv__org{font-weight:400;color:var(--muted)}
+.cv__when{margin:0;color:var(--muted);font-size:.86rem;white-space:nowrap}
+.cv__item > p{margin:.5rem 0 0}
+.cv__item ul{margin:.5rem 0 0;padding-left:1.2rem}
+.cv__item li{margin:.2rem 0}
+.cv__stack{margin:.6rem 0 0;display:flex;flex-wrap:wrap;gap:.35rem}
+.cv__skills{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.cv__skillArea h3{
+  font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);margin:0 0 .5rem
+}
+.cv__skillArea p{margin:0;display:flex;flex-wrap:wrap;gap:.35rem}
+.cards--projects{grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));max-width:var(--max)}
+.cards--projects .card__summary{margin-bottom:.5rem}
+
 /* tarjetas */
 .cards{
   display:grid;gap:1rem;margin:2.5rem 0 0;
@@ -161,19 +198,63 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
   </nav>
 </header>
 <main id="main">
-<p><img src="/assets/wp-content/uploads/2015/06/pikilon_francisco_gutierrez-231x256.jpg" alt="pikilon_francisco_gutierrez" loading="lazy" decoding="async"></p>
-<p>It was about time to have my professional portfolio and here it is.</p>
-<p>I created this site as a way to promote my work and share tricks I learned. I am a developer so <strong>this site will be focused on performance, usability and readability.</strong></p>
-<p>I’ve been a web developer for 17 years and I want to share with you some <strong>code</strong> I found useful and some <strong>opinions</strong> about web news (my blog). My fields of expertise are HTML, CSS, Javascript and Php. I also have video producing/editing knowledge because I studied and worked in that for a long time.</p>
-<p>I’ve just finished my Higher National Diploma (<strong>HND</strong>) in <strong>Web Application Development</strong> with <strong>First Class Honors</strong> in a record time.</p>
-<p>I do freelancing projects so if you like what you see and want to hire me feel free to contact me:</p>
-<ul>
-  <li><a href="mailto:pikilon@gmail.com">pikilon@gmail.com</a></li>
-  <li><a href="https://www.facebook.com/piki.g.saraza" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-  <li><a href="https://twitter.com/nomaspatanes" target="_blank" rel="noopener noreferrer">Twitter</a></li>
-  <li><a href="https://plus.google.com/+pikilon" target="_blank" rel="noopener noreferrer">Google+</a></li>
-</ul>
-<div class="cards">
+<header class="cv__head">
+<img class="portrait" src="/assets/wp-content/uploads/2015/06/pikilon_francisco_gutierrez.jpg" alt="Francisco G. Sarazá" width="170" height="170" loading="eager" decoding="async">
+<h1>Francisco G. Sarazá</h1>
+<p class="cv__tagline">The web artisan</p>
+</header>
+<div class="prose cv__bio"><p>Llevo más de 20 años construyendo webs. Empecé cuando el oficio consistía en tablas y GIFs, y he ido adaptándome a todo lo que vino después: hojas de estilo, JavaScript de verdad, frameworks y ahora TypeScript.</p>
+<p>Mi especialidad es el frontend (HTML, CSS, JavaScript y PHP), con el foco puesto en <strong>rendimiento, usabilidad y accesibilidad</strong>. Antes de dedicarme al código estudié y trabajé en producción y edición de vídeo, y eso se nota: sigo pensando en el resultado que ve la gente, no sólo en el código.</p>
+<p>Trabajo en proyectos freelance y mantengo varios proyectos de código abierto.</p>
+</div>
+<nav class="cv__links" aria-label="Contacto y perfiles">
+<a class="cv__link" href="mailto:pikilon@gmail.com">Email</a>
+<a class="cv__link" href="https://github.com/pikilon" rel="me noopener">GitHub</a>
+<a class="cv__link" href="https://www.facebook.com/piki.g.saraza" rel="me noopener">Facebook</a>
+<a class="cv__link" href="https://twitter.com/nomaspatanes" rel="me noopener">Twitter</a>
+</nav>
+<section class="cv__section">
+<h2>Formación</h2>
+<article class="cv__item">
+<div class="cv__itemHead">
+<h3>Web Application Development</h3>
+<p class="cv__when">Higher National Diploma · jun 2015 · First Class Honours</p>
+</div>
+<p>Titulación en desarrollo de aplicaciones web, completada con matrícula de honor.</p>
+</article>
+<article class="cv__item">
+<div class="cv__itemHead">
+<h3>Formación en producción y edición de vídeo</h3>
+<p class="cv__when">Sin especificar</p>
+</div>
+<p>Estudios y experiencia laboral en producción y edición de vídeo.</p>
+</article>
+</section>
+<section class="cv__section">
+<h2>Tecnologías</h2>
+<div class="cv__skills">
+<div class="cv__skillArea">
+<h3>Frontend</h3>
+<p><span class="chip">HTML</span> <span class="chip">CSS</span> <span class="chip">JavaScript</span> <span class="chip">TypeScript</span></p>
+</div>
+<div class="cv__skillArea">
+<h3>Backend</h3>
+<p><span class="chip">PHP</span> <span class="chip">Node.js</span></p>
+</div>
+<div class="cv__skillArea">
+<h3>Aprendiendo</h3>
+<p><span class="chip">Vue</span> <span class="chip">Lit</span> <span class="chip">React Native</span></p>
+</div>
+</div>
+</section>
+<section class="cv__section">
+<h2>Proyectos</h2>
+<div class="cards cards--projects">
+<article class="card"><a class="card__link" href="https://github.com/pikilon/red-line" rel="noopener"><div class="card__body"><h3 class="card__title">Modern Conquest: Red Line</h3><p class="card__summary">RTS de navegador de código abierto</p><p class="card__summary">Juego de estrategia en tiempo real ambientado en conflictos modernos, inspirado en Red Alert 2 y C&amp;C Generals.</p><p class="cv__stack"><span class="chip chip--tag">TypeScript</span></p></div></a></article>
+<article class="card"><a class="card__link" href="https://github.com/pikilon/die-hard-dice" rel="noopener"><div class="card__body"><h3 class="card__title">Die Hard Dice</h3><p class="card__summary">Gestor de dados para juegos de mesa</p><p class="card__summary">Aplicación para crear y gestionar conjuntos de dados para juegos de mesa.</p><p class="cv__stack"><span class="chip chip--tag">JavaScript</span></p></div></a></article>
+<article class="card"><a class="card__link" href="https://github.com/pikilon/rocking-rolling-dices" rel="noopener"><div class="card__body"><h3 class="card__title">Rocking Rolling Dices</h3><p class="card__summary">Práctica con tecnologías web actuales</p><p class="card__summary">Proyecto de entrenamiento con las últimas tecnologías del navegador.</p><p class="cv__stack"><span class="chip chip--tag">JavaScript</span></p></div></a></article>
+</div>
+</section><div class="cards">
 <article class="card">
   <a class="card__link" href="/code/serverless-telegram-bot-using-firebase-in-5-minutes/">
     <img class="card__thumb" src="/assets/wp-content/uploads/2019/02/telegram_bot.png" alt="" width="586" height="285" loading="lazy" decoding="async">

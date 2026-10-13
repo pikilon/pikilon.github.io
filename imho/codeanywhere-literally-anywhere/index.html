@@ -13,7 +13,7 @@
 
 <meta name="twitter:card" content="summary">
 <meta property="article:published_time" content="2015-12-14T12:00:00Z">
-<meta property="article:modified_time" content="2026-10-13T13:48:26Z">
+<meta property="article:modified_time" content="2026-10-13T13:59:14Z">
 <link rel="alternate" type="application/rss+xml" title="Pikilon's portfolio" href="/feed.xml">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
@@ -97,6 +97,43 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
   border:1px solid var(--line);margin:0 0 1.25rem
 }
 #profile_photo p{margin:0}
+
+/* CV */
+.cv__head{margin:.5rem 0 1.5rem}
+.cv__head h1{
+  font-size:clamp(1.9rem,5vw,2.6rem);line-height:1.1;letter-spacing:-.03em;margin:0 0 .3rem
+}
+.cv__tagline{color:var(--muted);font-size:1.05rem;margin:0}
+.cv__bio{max-width:var(--max)}
+.cv__bio p{margin:0 0 1rem}
+.cv__links{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0 0;padding:0}
+.cv__link{
+  display:inline-block;padding:.35rem .75rem;border:1px solid var(--line);border-radius:999px;
+  text-decoration:none;font-size:.9rem;color:var(--fg);background:var(--card)
+}
+.cv__link:hover{border-color:var(--accent);color:var(--accent)}
+.cv__section{margin:2.75rem 0 0;max-width:var(--max)}
+.cv__section > h2{
+  font-size:1.05rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+  font-weight:600;margin:0 0 1.25rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)
+}
+.cv__item{margin:0 0 1.75rem}
+.cv__itemHead{display:flex;flex-wrap:wrap;gap:.15rem .75rem;align-items:baseline;justify-content:space-between}
+.cv__item h3{font-size:1.02rem;margin:0;letter-spacing:-.01em;font-weight:650}
+.cv__org{font-weight:400;color:var(--muted)}
+.cv__when{margin:0;color:var(--muted);font-size:.86rem;white-space:nowrap}
+.cv__item > p{margin:.5rem 0 0}
+.cv__item ul{margin:.5rem 0 0;padding-left:1.2rem}
+.cv__item li{margin:.2rem 0}
+.cv__stack{margin:.6rem 0 0;display:flex;flex-wrap:wrap;gap:.35rem}
+.cv__skills{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.cv__skillArea h3{
+  font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);margin:0 0 .5rem
+}
+.cv__skillArea p{margin:0;display:flex;flex-wrap:wrap;gap:.35rem}
+.cards--projects{grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));max-width:var(--max)}
+.cards--projects .card__summary{margin-bottom:.5rem}
 
 /* tarjetas */
 .cards{
