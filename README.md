@@ -174,6 +174,26 @@ se conserva en `archive/`:
 
 Este archivo **no se debe borrar**: es la única copia del contenido original.
 
+### Añadir el respaldo de la base de datos
+
+El archivo anterior se hizo a través de la API REST pública, que sólo entrega
+lo publicado. El dump de MySQL de hPanel aporta además los borradores, lo
+programado y los ajustes del sitio. Para incorporarlo:
+
+1. Exportar desde hPanel → *Bases de datos* → *phpMyAdmin* → *Exportar*
+   (formato SQL).
+2. Dejar el archivo `.sql` en la raíz del repositorio.
+3. Ejecutar `node scripts/import.mjs`.
+
+No hace falta un servidor MySQL: el dump se interpreta directamente. Los
+borradores entran con estado `draft`, así que **no se publican** en la web pero
+quedan disponibles y se ven con `node scripts/site.mjs list`. El informe de lo
+leído queda en `db/dump-summary.json`.
+
+Un `.sql` en la raíz está ignorado por git (puede pesar mucho y contener
+ajustes internos), así que no se sube solo. Si quieres conservarlo en el
+repositorio, muévelo a `data/` y quítale la regla del `.gitignore`.
+
 ## Despliegue
 
 El sitio se publica en `pikilon/pikilon.github.io`. Detalles importantes:
@@ -183,8 +203,13 @@ El sitio se publica en `pikilon/pikilon.github.io`. Detalles importantes:
   subcarpetas. `scripts/deploy.mjs` sólo reemplaza lo que genera este sitio,
   usando un manifiesto de la publicación anterior, y nunca toca las carpetas
   protegidas.
-- `public/` **no** se versiona: se regenera con `build` y se copia al
-  repositorio con `deploy`.
+- El despliegue se hace **desde este mismo repositorio**: copia `public/` a su
+  raíz, se pone al día con el remoto y hace push. Es idempotente, así que
+  ejecutarlo dos veces sin cambios no hace nada. Antes clonaba el repositorio
+  en una carpeta aparte, lo que creaba dos historias paralelas que había que
+  fusionar a mano.
+- `public/` **no** se versiona: se regenera con `build` y se copia a la raíz
+  con `deploy`. Lo que se versiona en la raíz es el resultado ya publicado.
 - Para servir el dominio propio hace falta un archivo `CNAME` con
   `pikilon.com` y apuntar el DNS desde hPanel a GitHub Pages. No se ha hecho
   todavía: mientras tanto, el sitio responde en
@@ -243,6 +268,7 @@ assets/         recursos del sitio (imágenes migradas + favicon)
 db/             schema.sql y la base de datos generada
 site/           contenido en Markdown (fuente de verdad)
 scripts/        herramientas de importación, generación y despliegue
+  utils.mjs       utilidades compartidas (slugs, fechas, iconos)
 public/         sitio generado (no versionado)
 .dsh/skills/    skill de publicación para el agente
 ```
