@@ -112,6 +112,12 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
   text-decoration:none;font-size:.9rem;color:var(--fg);background:var(--card)
 }
 .cv__link:hover{border-color:var(--accent);color:var(--accent)}
+.cv__print{margin:1.25rem 0 0}
+.cv__print button{
+  font:inherit;font-size:.9rem;padding:.4rem .85rem;cursor:pointer;
+  background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:999px
+}
+.cv__print button:hover{border-color:var(--accent);color:var(--accent)}
 .cv__section{margin:2.75rem 0 0;max-width:var(--max)}
 .cv__section > h2{
   font-size:1.05rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
@@ -185,6 +191,51 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
   border-top:1px solid var(--line);color:var(--muted);font-size:.88rem
 }
 .sitefoot p{margin:.2rem 0}
+
+/* ---------------------------------------------------------------- impresión */
+/* El CV se imprime: quien lo lee en papel suele ser quien decide. Aquí se
+   quita todo lo que no aporta (navegación, enlaces de adorno) y se deja el
+   contenido. Un enlace en papel no se puede pulsar, así que se escribe su
+   URL al lado. */
+@media print{
+  :root{
+    --bg:#fff; --fg:#000; --muted:#444; --line:#bbb;
+    --accent:#000; --accent-soft:#f2f2f2; --card:#fff
+  }
+  @page{margin:14mm}
+  body{font-size:10.5pt;line-height:1.45}
+  .topbar,.sitefoot,.skip,.cv__links,.cv__print,.related,.cards,.entry__footer{display:none !important}
+  main{max-width:none;padding:0}
+  .cv__head{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem}
+  .portrait,#profile_photo img{
+    width:84px;height:84px;margin:0;border:0;flex:0 0 auto
+  }
+  .cv__head h1{font-size:1.6rem;margin:0}
+  .cv__tagline{font-size:1rem}
+  .cv__section{margin-top:1.1rem;max-width:none}
+  .cv__section > h2{
+    font-size:.8rem;letter-spacing:.08em;margin-bottom:.4rem;padding-bottom:.15rem
+  }
+  /* Un puesto o una titulación no debería partirse entre dos páginas. */
+  .cv__item{break-inside:avoid;page-break-inside:avoid;margin-bottom:.7rem}
+  .cv__itemHead{gap:0 .5rem}
+  .cv__item h3{font-size:1rem}
+  .cv__when{font-size:.82rem}
+  .cv__skills{gap:.4rem;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))}
+  .chip{border:1px solid var(--line);background:none;color:var(--fg)}
+
+  /* Los artículos también se imprimen a veces: sin migas ni cajas de color. */
+  .entry__header{max-width:none}
+  .hero{max-width:none;border:0}
+  .prose,.prose > *,main > p{max-width:none}
+  .prose pre{white-space:pre-wrap;word-wrap:break-word;border:1px solid var(--line)}
+  .prose a[href^="http"]::after{
+    content:" (" attr(href) ")";font-size:.8em;color:var(--muted);word-break:break-all
+  }
+  .prose a[href^="#"]::after,.prose a[href^="mailto:"]::after{content:""}
+  .prose iframe{display:none}
+  h1,h2,h3{break-after:avoid;page-break-after:avoid}
+}
 </style>
 </head>
 <body>
@@ -207,6 +258,7 @@ main > h1{letter-spacing:-.02em;line-height:1.2;margin:.5rem 0 .25rem}
 <p>Mi especialidad es el frontend (HTML, CSS, JavaScript y PHP), con el foco puesto en <strong>rendimiento, usabilidad y accesibilidad</strong>. Antes de dedicarme al código estudié y trabajé en producción y edición de vídeo, y eso se nota: sigo pensando en el resultado que ve la gente, no sólo en el código.</p>
 <p>Trabajo en proyectos freelance y mantengo varios proyectos de código abierto.</p>
 </div>
+<p class="cv__print"><button type="button" onclick="window.print()">Imprimir o guardar en PDF</button></p>
 <nav class="cv__links" aria-label="Contacto y perfiles">
 <a class="cv__link" href="mailto:pikilon@gmail.com">Email</a>
 <a class="cv__link" href="https://github.com/pikilon" rel="me noopener">GitHub</a>
