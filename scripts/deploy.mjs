@@ -30,7 +30,13 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = join(ROOT, 'public');
 const STAGE = join(ROOT, '.deploy');
 const MANIFEST = join(ROOT, '.deploy-manifest.json');
-const REMOTE = 'git@github.com:pikilon/pikilon.github.io.git';
+/**
+ * URL del repositorio de GitHub Pages.
+ * Se usa el alias SSH `github-pikilon` (definido en ~/.ssh/config) porque la
+ * clave por defecto de esta máquina pertenece a OTRA cuenta de GitHub
+ * (francisco-toptal), que no tiene permiso sobre este repositorio.
+ */
+const REMOTE = 'github-pikilon:pikilon/pikilon.github.io.git';
 
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry-run');

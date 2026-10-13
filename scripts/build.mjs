@@ -308,17 +308,17 @@ ${postsSection(own, site, { all: true })}`,
   }));
 
   // ---- redirecciones de URLs antiguas de WordPress ----------------------
-  await emit(
-    '_redirects',
-    [
-      '# Categorías: WordPress servía /category/<slug>/ además de /cat/<slug>/.',
-      ...terms.filter((t) => t.kind === 'category' && t.entries > 0).map((t) => `/category/${t.slug}/  /cat/${t.slug}/  301`),
-      '',
-      '# El feed antiguo como XML.',
-      '/feed/  /feed.xml  301',
-      '',
-    ].join('\n'),
-  );
+  // GitHub Pages NO admite el formato `_redirects` de Netlify, así que las
+  // URLs antiguas necesitan un archivo de verdad. Se genera una página de
+  // salto con <link rel="canonical">, que es lo que los buscadores leen como
+  // redirección permanente cuando no se puede emitir un 301 real.
+  const redirects = legacyRedirects(terms, site);
+  for (const [from, to] of redirects) {
+    await emit(`${from.replace(/^\//, '')}index.html`, redirectPage({ from, to, site }));
+  }
+  // Se mantiene además `_redirects`: no molesta en GitHub Pages y sirve si el
+  // sitio se publica algún día en Netlify o Cloudflare Pages.
+  await emit('_redirects', redirects.map(([from, to]) => `${from}  ${to}  301`).join('\n') + '\n');
 
   // ---- informe -----------------------------------------------------------
   const bytes = (
@@ -341,6 +341,46 @@ ${postsSection(own, site, { all: true })}`,
   console.log(`Listo en ${((Date.now() - t0) / 1000).toFixed(2)}s\n`);
 
   return { written, pages, out: OUT };
+}
+
+/**
+ * URLs que servía el WordPress original y que ya no se generan.
+ *
+ * Devolver una redirección por cada una evita perder los enlaces entrantes y
+ * el posicionamiento acumulado. Las categorías son el caso importante:
+ * WordPress las servía en /category/<slug>/ (con 301 a /cat/<slug>/), y un
+ * 404 en una URL con enlaces externos es lo peor que se puede dejar.
+ *
+ * @returns {Array<[string, string]>} pares [origen, destino]
+ */
+function legacyRedirects(terms, site) {
+  const out = [];
+  for (const t of terms) {
+    if (t.kind === 'category' && t.entries > 0) out.push([`/category/${t.slug}/`, `/cat/${t.slug}/`]);
+  }
+  // El feed que servía WordPress en /feed/.
+  out.push(['/feed/', '/feed.xml']);
+  return out;
+}
+
+/** Página mínima de redirección permanente. */
+function redirectPage({ from, to, site }) {
+  const target = to.startsWith('http') ? to : `${site.url}${to}`;
+  const html = `<!DOCTYPE html>
+<html lang="${escapeAttr(site.lang || 'en')}">
+<head>
+<meta charset="utf-8">
+<title>Redirigido a ${escapeHtml(to)}</title>
+<link rel="canonical" href="${escapeAttr(target)}">
+<meta name="robots" content="noindex, follow">
+<meta http-equiv="refresh" content="0; url=${escapeAttr(to)}">
+</head>
+<body>
+<p>Esta página se ha movido a <a href="${escapeAttr(to)}">${escapeHtml(to)}</a>.</p>
+</body>
+</html>
+`;
+  return html;
 }
 
 /** Fecha más reciente de un conjunto de entradas, para `lastmod`. */
