@@ -143,6 +143,7 @@ Los borradores (`status: draft`) no se publican y no generan página.
 | `node scripts/site.mjs export` | Vuelca la base de datos a Markdown |
 | `node scripts/site.mjs sync [--prune]` | Importa `site/` a la base de datos |
 | `node scripts/site.mjs build [--drafts]` | Genera `public/` |
+| `node scripts/site.mjs test` | Pasa las pruebas del parser y del conversor |
 | `node scripts/site.mjs check` | Audita integridad (base de datos y HTML) |
 | `node scripts/site.mjs publish` | `sync` + `check` + `build` |
 | `node scripts/site.mjs deploy [--dry-run]` | Publica en GitHub Pages |
@@ -170,6 +171,12 @@ ejecuta `node scripts/site.mjs sync --prune`.
   titulaciones con institución y enlaces con esquema válido.
 
 Si algo falla, `publish` **no** genera el sitio: primero hay que arreglarlo.
+
+Antes de la auditoría, `publish` pasa `node scripts/test.mjs`: 37 pruebas sin
+dependencias sobre el parser de Markdown, el conversor de HTML de WordPress,
+la cabecera de los archivos y los slugs. Cubren los sitios donde un fallo
+silencioso se convierte en contenido roto, o directamente en un proceso
+colgado (ya pasó una vez con las listas).
 
 ## De dónde viene el contenido
 
@@ -280,6 +287,7 @@ db/             schema.sql y la base de datos generada
 site/           contenido en Markdown (fuente de verdad)
 scripts/        herramientas de importación, generación y despliegue
   utils.mjs       utilidades compartidas (slugs, fechas, iconos)
+  test.mjs        pruebas de las piezas críticas
 public/         sitio generado (no versionado)
 .dsh/skills/    skill de publicación para el agente
 ```
